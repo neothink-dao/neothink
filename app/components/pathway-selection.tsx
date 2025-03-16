@@ -90,9 +90,9 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
               onMouseEnter={() => setHoveredPathway(pathway.id)}
               onMouseLeave={() => setHoveredPathway(null)}
               className={cn(
-                "group relative flex w-full flex-col overflow-hidden rounded-2xl border bg-white/80 p-6 backdrop-blur-sm transition-all duration-300 dark:bg-zinc-900/80",
+                "group relative flex w-full flex-col overflow-hidden rounded-2xl border bg-white/90 p-6 backdrop-blur-sm transition-all duration-300 dark:bg-zinc-900/90",
                 isSelected
-                  ? "ring-2 ring-offset-2 dark:ring-offset-zinc-950"
+                  ? "ring-2 ring-offset-4 dark:ring-offset-zinc-950"
                   : "hover:border-zinc-300 dark:hover:border-zinc-700",
                 isSelected && pathway.id === "ascender" && "ring-orange-500 border-orange-500/50 dark:ring-orange-400 dark:border-orange-400/50",
                 isSelected && pathway.id === "neothinker" && "ring-amber-500 border-amber-500/50 dark:ring-amber-400 dark:border-amber-400/50",
@@ -121,7 +121,7 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
                           {pathway.subtitle}
                         </span>
                         <span className={cn(
-                          "inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium text-white bg-gradient-to-r",
+                          "inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium text-white shadow-sm bg-gradient-to-r",
                           pathway.gradient
                         )}>
                           {pathway.tagline}
@@ -168,23 +168,25 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
                         key={feature}
                         className="flex items-center gap-3 text-base text-zinc-700 dark:text-zinc-300"
                       >
-                        <svg
-                          className={cn(
-                            "h-5 w-5 transition-transform duration-300",
-                            pathway.color,
-                            (isSelected || isHovered) && "scale-110"
-                          )}
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
+                        <div className={cn(
+                          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-transform duration-300 bg-gradient-to-r",
+                          pathway.gradient,
+                          (isSelected || isHovered) && "scale-110"
+                        )}>
+                          <svg
+                            className="h-3 w-3 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={3}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        </div>
                         {feature}
                       </li>
                     ))}
