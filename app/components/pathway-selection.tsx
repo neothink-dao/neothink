@@ -7,8 +7,6 @@ import { cn } from "@/lib/utils"
 interface PathwayOption {
   id: "ascender" | "neothinker" | "immortal"
   title: string
-  subtitle: string
-  tagline: string
   description: string
   icon: any
   color: string
@@ -27,8 +25,6 @@ const pathways: PathwayOption[] = [
   {
     id: "ascender",
     title: "Ascender",
-    subtitle: "Supercharged Creator",
-    tagline: "Amplify Your Prosperity",
     description: "Enhance your wealth creation with:",
     icon: Rocket,
     color: "text-orange-500 dark:text-orange-400",
@@ -39,8 +35,6 @@ const pathways: PathwayOption[] = [
   {
     id: "neothinker",
     title: "Neothinker",
-    subtitle: "Supercharged Thinker",
-    tagline: "Amplify Your Potential",
     description: "Enhance your inner power with:",
     icon: Brain,
     color: "text-amber-500 dark:text-amber-400",
@@ -51,8 +45,6 @@ const pathways: PathwayOption[] = [
   {
     id: "immortal",
     title: "Immortal",
-    subtitle: "Supercharged Leader",
-    tagline: "Amplify Your Vitality",
     description: "Enhance your wellbeing with:",
     icon: Zap,
     color: "text-red-500 dark:text-red-400",
@@ -67,7 +59,7 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
 
   return (
     <div className="space-y-8">
-      <div className="space-y-2">
+      <div className="text-center space-y-2">
         <h3 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
           Choose Your Focus
         </h3>
@@ -112,21 +104,10 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
                     )}>
                       <Icon className="h-6 w-6 text-white" />
                     </div>
-                    <div className="space-y-2">
+                    <div>
                       <h4 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
                         {pathway.title}
                       </h4>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="inline-flex items-center rounded-full bg-zinc-100/80 px-2.5 py-1 text-sm font-medium text-zinc-800 backdrop-blur-sm dark:bg-zinc-800/80 dark:text-zinc-200">
-                          {pathway.subtitle}
-                        </span>
-                        <span className={cn(
-                          "inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium text-white shadow-sm bg-gradient-to-r",
-                          pathway.gradient
-                        )}>
-                          {pathway.tagline}
-                        </span>
-                      </div>
                     </div>
                   </div>
 
@@ -148,7 +129,7 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          strokeWidth={2}
+                          strokeWidth={3}
                           d="M5 13l4 4L19 7"
                         />
                       </svg>
