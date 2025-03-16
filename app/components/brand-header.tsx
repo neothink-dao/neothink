@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/context/auth-context"
 import { Sparkles } from "lucide-react"
 
@@ -12,6 +12,10 @@ export function BrandHeader() {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const router = useRouter()
   const { user } = useAuth()
+  const pathname = usePathname()
+
+  // Don't render header on auth pages
+  if (pathname.startsWith("/auth")) return null
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
