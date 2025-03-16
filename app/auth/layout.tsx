@@ -54,33 +54,22 @@ export default function AuthLayout({
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-zinc-50 dark:bg-black">
-      {/* Logo */}
-      <div className="fixed top-8 left-8 z-50">
-        <a href="/" className="flex items-center space-x-2 opacity-75 transition-opacity hover:opacity-100">
-          <div className="rounded-full bg-zinc-100 p-2 dark:bg-zinc-800/50">
-            <Brain className="h-5 w-5 text-zinc-900 dark:text-zinc-100" />
+    <div className="min-h-screen bg-zinc-50 dark:bg-black">
+      <main className="relative isolate min-h-screen">
+        {/* Background gradient */}
+        <div className="absolute inset-0 -z-10 h-full w-full bg-white dark:bg-zinc-950">
+          <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80" aria-hidden="true">
+            <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-orange-600 to-amber-500 opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" />
           </div>
-          <span className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-            Neothink+
-          </span>
-        </a>
-      </div>
+          <div className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]" aria-hidden="true">
+            <div className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-amber-500 to-orange-600 opacity-20 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]" />
+          </div>
+        </div>
 
-      {/* Main content */}
-      <main className="relative flex-1 flex items-start justify-center px-4 pt-32 pb-16">
-        <div className="w-full max-w-6xl mx-auto">
+        <div className="px-6 py-10 sm:py-16 lg:py-20">
           {children}
         </div>
       </main>
-
-      {/* Background gradient */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-1/2 -right-1/4 w-[800px] h-[800px] bg-amber-100/30 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob dark:bg-amber-900/30 dark:mix-blend-normal" />
-        <div className="absolute -bottom-1/2 -left-1/4 w-[800px] h-[800px] bg-orange-100/30 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 dark:bg-orange-900/30 dark:mix-blend-normal" />
-        <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-red-100/30 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 dark:bg-red-900/30 dark:mix-blend-normal" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-zinc-50/80 dark:to-black/80" />
-      </div>
     </div>
   )
 }

@@ -80,15 +80,15 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
   return (
     <div className="space-y-10">
       <div>
-        <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+        <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
           Choose Your Focus
         </h3>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-base text-zinc-600 dark:text-zinc-400">
           Select the area where you want to accelerate your growth
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         {pathways.map((pathway) => {
           const Icon = pathway.icon
           const isSelected = selectedPathway === pathway.id
@@ -102,10 +102,10 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
               onMouseEnter={() => setHoveredPathway(pathway.id)}
               onMouseLeave={() => setHoveredPathway(null)}
               className={cn(
-                "group relative flex w-full flex-col overflow-hidden rounded-2xl border p-6 transition-all duration-300",
+                "group relative flex w-full flex-col overflow-hidden rounded-2xl bg-white p-8 transition-all duration-300 dark:bg-zinc-900",
                 isSelected
-                  ? "border-transparent ring-2 ring-offset-2 dark:ring-offset-black"
-                  : "border-zinc-200/50 hover:border-transparent hover:shadow-lg dark:border-zinc-800/50",
+                  ? "ring-2 ring-offset-4 dark:ring-offset-black"
+                  : "hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-zinc-900/50",
                 isSelected && `ring-${pathway.color}`,
                 (isSelected || isHovered) && "scale-[1.02]"
               )}
@@ -114,29 +114,29 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
               <div className={cn(
                 "absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-300",
                 pathway.gradient,
-                (isSelected || isHovered) && "opacity-[0.03]"
+                (isSelected || isHovered) && "opacity-[0.08]"
               )} />
 
-              <div className="relative flex flex-col space-y-5">
+              <div className="relative flex flex-col space-y-6">
                 {/* Header */}
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-4">
                     <div className={cn(
-                      "rounded-xl p-2.5 bg-gradient-to-br shadow-lg",
+                      "rounded-xl p-3 bg-gradient-to-br shadow-lg",
                       pathway.gradient
                     )}>
-                      <Icon className="h-5 w-5 text-white" />
+                      <Icon className="h-6 w-6 text-white" />
                     </div>
-                    <div className="space-y-1.5">
-                      <h4 className="font-medium text-zinc-900 dark:text-zinc-100">
+                    <div className="space-y-2">
+                      <h4 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
                         {pathway.title}
                       </h4>
-                      <div className="flex flex-wrap gap-1.5">
-                        <span className="inline-flex items-center rounded-full bg-zinc-100/80 px-2 py-0.5 text-xs font-medium text-zinc-800 backdrop-blur-sm dark:bg-zinc-800/80 dark:text-zinc-200">
+                      <div className="flex flex-wrap gap-2">
+                        <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-1 text-sm font-medium text-zinc-800 shadow-sm dark:bg-zinc-800 dark:text-zinc-200">
                           {pathway.subtitle}
                         </span>
                         <span className={cn(
-                          "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium text-white shadow-sm",
+                          "inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium text-white shadow-sm",
                           `bg-gradient-to-r ${pathway.gradient}`
                         )}>
                           {pathway.tagline}
@@ -147,7 +147,7 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
 
                   {/* Selection indicator */}
                   <div className={cn(
-                    "relative h-5 w-5 shrink-0 rounded-full border-2 transition-colors",
+                    "relative h-6 w-6 shrink-0 rounded-full border-2 transition-colors",
                     isSelected
                       ? `border-${pathway.color} bg-${pathway.color}`
                       : "border-zinc-300 dark:border-zinc-600"
@@ -171,19 +171,19 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
                 </div>
 
                 {/* Content */}
-                <div className="space-y-3">
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                <div className="space-y-4">
+                  <p className="text-base text-zinc-600 dark:text-zinc-400">
                     {pathway.description}
                   </p>
 
-                  <ul className="space-y-2">
+                  <ul className="space-y-3">
                     {pathway.features.map((feature) => (
                       <li
                         key={feature}
-                        className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300"
+                        className="flex items-center gap-3 text-base text-zinc-700 dark:text-zinc-300"
                       >
                         <svg
-                          className={cn("h-3.5 w-3.5", pathway.color)}
+                          className={cn("h-5 w-5", pathway.color)}
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -200,13 +200,18 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
                     ))}
                   </ul>
 
-                  <p className={cn(
-                    "text-sm font-medium transition-colors",
-                    pathway.color,
-                    (isSelected || isHovered) && "text-current"
-                  )}>
-                    {pathway.cta} →
-                  </p>
+                  <div className="pt-2">
+                    <p className={cn(
+                      "inline-flex items-center text-base font-medium transition-colors gap-1",
+                      pathway.color,
+                      (isSelected || isHovered) && "text-current"
+                    )}>
+                      {pathway.cta}
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </p>
+                  </div>
                 </div>
               </div>
             </button>
@@ -215,7 +220,7 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
       </div>
 
       {error && (
-        <div className="mt-6 rounded-lg bg-red-50 p-4 text-sm text-red-500 dark:bg-red-900/30">
+        <div className="mt-6 rounded-lg bg-red-50 p-4 text-base text-red-500 dark:bg-red-900/30">
           {error}
         </div>
       )}
