@@ -28,8 +28,8 @@ const pathways: PathwayOption[] = [
     id: "ascender",
     title: "Ascender",
     subtitle: "Supercharged Creator",
-    tagline: "Boost Your Prosperity",
-    description: "Become your wealthiest with access to:",
+    tagline: "Amplify Your Prosperity",
+    description: "Enhance your wealth creation with:",
     icon: Rocket,
     color: "text-orange-500",
     gradient: "from-orange-500 to-amber-500",
@@ -38,14 +38,14 @@ const pathways: PathwayOption[] = [
       "FLOW",
       "Ascenders"
     ],
-    cta: "Join now and become wealthier"
+    cta: "Elevate your wealth creation"
   },
   {
     id: "neothinker",
     title: "Neothinker",
     subtitle: "Supercharged Thinker",
-    tagline: "Boost Your Happiness",
-    description: "Become your happiest with access to:",
+    tagline: "Amplify Your Potential",
+    description: "Enhance your inner power with:",
     icon: Brain,
     color: "text-amber-500",
     gradient: "from-amber-500 to-yellow-500",
@@ -54,14 +54,14 @@ const pathways: PathwayOption[] = [
       "Mark Hamilton",
       "Neothinkers"
     ],
-    cta: "Join now and become happier"
+    cta: "Unlock deeper insights"
   },
   {
     id: "immortal",
     title: "Immortal",
     subtitle: "Supercharged Leader",
-    tagline: "Boost Your Longevity",
-    description: "Become your healthiest with access to:",
+    tagline: "Amplify Your Vitality",
+    description: "Enhance your wellbeing with:",
     icon: Zap,
     color: "text-purple-500",
     gradient: "from-purple-500 to-pink-500",
@@ -70,7 +70,7 @@ const pathways: PathwayOption[] = [
       "Project Life",
       "Immortals"
     ],
-    cta: "Join now and become healthier"
+    cta: "Maximize your vitality"
   }
 ]
 
@@ -78,13 +78,13 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
   const [hoveredPathway, setHoveredPathway] = useState<PathwayOption["id"] | null>(null)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="text-center">
-        <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-          Choose Your Path to Greatness
+        <h3 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          Choose Your Focus
         </h3>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-          Select the pathway that best aligns with your goals and aspirations
+        <p className="mt-2 text-base text-zinc-600 dark:text-zinc-400">
+          Select the area where you want to accelerate your growth
         </p>
       </div>
 
@@ -104,7 +104,7 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
               className={cn(
                 "relative flex w-full flex-col rounded-2xl border p-6 transition-all duration-300",
                 isSelected
-                  ? "border-transparent ring-2 ring-offset-2 dark:ring-offset-zinc-900"
+                  ? "border-transparent ring-2 ring-offset-2 dark:ring-offset-black"
                   : "border-zinc-200 hover:border-transparent hover:shadow-lg dark:border-zinc-800",
                 isSelected && `ring-${pathway.color}`,
                 (isSelected || isHovered) && "scale-[1.02]"
@@ -130,7 +130,7 @@ export function PathwaySelection({ onSelect, selectedPathway, error }: PathwaySe
                         </span>
                         <span className={cn(
                           "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                          `bg-${pathway.gradient} text-white`
+                          `bg-gradient-to-r ${pathway.gradient} text-white`
                         )}>
                           {pathway.tagline}
                         </span>
