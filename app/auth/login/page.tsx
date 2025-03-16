@@ -74,24 +74,17 @@ function LoginContent() {
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center py-12 sm:px-6 lg:px-8">
-      {/* Background gradient */}
-      <div className="fixed inset-0 bg-gradient-to-br from-zinc-100 via-white to-zinc-100 dark:from-black dark:via-zinc-900 dark:to-black" />
-      
-      {/* Ambient glow */}
-      <div className="fixed left-1/2 top-0 ml-[-20rem] h-[40rem] w-[40rem] rounded-full bg-orange-500/20 blur-3xl dark:bg-orange-400/10" />
-      <div className="fixed right-1/2 top-0 mr-[-20rem] h-[40rem] w-[40rem] rounded-full bg-amber-500/20 blur-3xl dark:bg-amber-400/10" />
-      
-      {/* Grid pattern */}
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] dark:bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)]" />
+      {/* Simple gradient background */}
+      <div className="fixed inset-0 bg-zinc-50 dark:bg-zinc-950" />
 
       <div className="relative w-full max-w-md px-4 sm:px-6 lg:px-8">
         {/* Card */}
         <div className="relative">
           {/* Card glow */}
-          <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-orange-500/30 via-amber-500/30 to-yellow-500/30 opacity-75 blur-lg transition duration-1000 group-hover:opacity-100 dark:from-orange-400/20 dark:via-amber-400/20 dark:to-yellow-400/20" />
+          <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-red-500/20 opacity-75 blur-lg transition duration-1000 group-hover:opacity-100 dark:from-amber-400/10 dark:via-orange-400/10 dark:to-red-400/10" />
           
           {/* Card content */}
-          <div className="relative overflow-hidden rounded-xl bg-white/80 shadow-xl shadow-black/5 backdrop-blur-lg transition duration-200 dark:bg-zinc-900/80 dark:shadow-zinc-900/30">
+          <div className="relative overflow-hidden rounded-xl border border-zinc-200/50 bg-white/80 shadow-xl shadow-black/5 backdrop-blur-lg transition duration-200 dark:border-zinc-800/50 dark:bg-zinc-900/80 dark:shadow-zinc-900/30">
             <div className="px-8 pt-8">
               <div className="mx-auto max-w-md text-center">
                 <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10">
