@@ -21,38 +21,59 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-      <div className="flex flex-col space-y-2 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Enter your email below to create your account
-        </p>
+    <div className="container mx-auto">
+      <div className="grid gap-8 lg:grid-cols-[2fr,1fr] lg:gap-12">
+        {/* Left column - Pathway Selection */}
+        <div className="space-y-6">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+              Join Neothink+
+            </h1>
+            <p className="mt-4 text-lg text-zinc-600 dark:text-zinc-400">
+              Choose your pathway and start your journey to greatness. Each pathway offers unique benefits and opportunities for growth.
+            </p>
+          </div>
+
+          <PathwaySelection
+            onSelect={setSelectedPathway}
+            selectedPathway={selectedPathway}
+            error={error}
+          />
+        </div>
+
+        {/* Right column - Auth Form */}
+        <div className="lg:sticky lg:top-32 lg:h-fit">
+          <div className="rounded-2xl border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+                Create your account
+              </h2>
+              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                Enter your details below to get started
+              </p>
+            </div>
+
+            <AuthForm
+              type="signup"
+              onSubmit={handleSubmit}
+              error={error}
+              disabled={!selectedPathway}
+            />
+
+            <p className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
+              By clicking continue, you agree to our{" "}
+              <a href="/terms" className="underline hover:text-zinc-900">
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a href="/privacy" className="underline hover:text-zinc-900">
+                Privacy Policy
+              </a>
+              .
+            </p>
+          </div>
+        </div>
       </div>
-
-      <PathwaySelection
-        onSelect={setSelectedPathway}
-        selectedPathway={selectedPathway}
-        error={error}
-      />
-
-      <AuthForm
-        type="signup"
-        onSubmit={handleSubmit}
-        error={error}
-        disabled={!selectedPathway}
-      />
-
-      <p className="px-8 text-center text-sm text-zinc-600 dark:text-zinc-400">
-        By clicking continue, you agree to our{" "}
-        <a href="/terms" className="underline hover:text-zinc-900">
-          Terms of Service
-        </a>{" "}
-        and{" "}
-        <a href="/privacy" className="underline hover:text-zinc-900">
-          Privacy Policy
-        </a>
-        .
-      </p>
     </div>
   )
 }
