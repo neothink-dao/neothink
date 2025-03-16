@@ -3,11 +3,13 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Brain } from "lucide-react"
-import { useSupabase } from "@/components/providers"
+import { useSupabase } from "@/components/providers/supabase-provider"
+import { useAuth } from "@/context/auth-context"
 
 export function Header() {
   const router = useRouter()
-  const { user, supabase } = useSupabase()
+  const { supabase } = useSupabase()
+  const { user } = useAuth()
 
   const signOut = async () => {
     try {
@@ -27,43 +29,36 @@ export function Header() {
           </div>
           <span className="text-xl font-semibold text-neothinker-900">Neothink+</span>
         </Link>
+
         <nav className="flex items-center space-x-6">
           {user ? (
             <>
-              <Link 
-                href="/dashboard" 
-                className="text-sm font-medium text-neothinker-600 hover:text-neothinker-700"
+              <Link
+                href="/dashboard"
+                className="text-sm font-medium text-neothinker-600 hover:text-neothinker-900"
               >
                 Dashboard
               </Link>
-              <Link 
-                href="/dashboard/profile" 
-                className="text-sm font-medium text-neothinker-600 hover:text-neothinker-700"
+              <button
+                onClick={signOut}
+                className="text-sm font-medium text-neothinker-600 hover:text-neothinker-900"
               >
-                Profile
-              </Link>
-              <div className="relative">
-                <button
-                  onClick={signOut}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-neothinker-50 text-sm font-medium text-neothinker-900 hover:bg-neothinker-100"
-                >
-                  {user.email?.[0].toUpperCase()}
-                </button>
-              </div>
+                Sign Out
+              </button>
             </>
           ) : (
             <>
-              <Link 
+              <Link
                 href="/auth/login"
-                className="text-sm font-medium text-neothinker-600 hover:text-neothinker-700"
+                className="text-sm font-medium text-neothinker-600 hover:text-neothinker-900"
               >
-                Login
+                Sign In
               </Link>
-              <Link 
+              <Link
                 href="/auth/signup"
-                className="inline-flex h-10 items-center justify-center rounded-md bg-neothinker-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-neothinker-700 focus:outline-none focus:ring-2 focus:ring-neothinker-400 focus:ring-offset-2"
+                className="rounded-full bg-neothinker-600 px-4 py-2 text-sm font-medium text-white hover:bg-neothinker-700"
               >
-                Get Started
+                Sign Up
               </Link>
             </>
           )}
