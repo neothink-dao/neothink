@@ -13,9 +13,12 @@ export default function SignUpPage() {
   const [error, setError] = useState<string>()
 
   const handleSubmit = async (email: string, password: string) => {
+    console.log("Starting signup process...", { email, selectedPathway })
     try {
       await signUp(email, password)
+      console.log("Signup successful, redirecting to verification page...")
     } catch (error: any) {
+      console.error("Signup error:", error)
       setError(error.message)
     }
   }
@@ -43,7 +46,10 @@ export default function SignUpPage() {
           {/* Pathway Selection */}
           <div className="relative">
             <PathwaySelection
-              onSelect={setSelectedPathway}
+              onSelect={(pathway) => {
+                console.log("Pathway selected:", pathway)
+                setSelectedPathway(pathway)
+              }}
               selectedPathway={selectedPathway}
               error={error}
             />
