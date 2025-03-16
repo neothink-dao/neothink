@@ -9,6 +9,7 @@ import { useAuth } from "@/context/auth-context"
 import Link from "next/link"
 import { Eye, EyeOff, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
+import { cn } from "@/lib/utils"
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -72,237 +73,178 @@ function LoginContent() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-md">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="rounded-2xl border border-zinc-200 bg-white/80 backdrop-blur shadow-sm transition hover:shadow-md dark:border-zinc-800 dark:bg-zinc-800/50"
-        >
-          <div className="p-8">
-            <div className="flex flex-col items-center text-center">
-              <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
-                className="flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10 mb-6"
-              >
-                <Sparkles className="h-8 w-8 text-orange-500" />
-              </motion.div>
-              <h1 className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-3xl dark:from-amber-400 dark:via-orange-400 dark:to-red-400">
-                Welcome Back
-              </h1>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                Sign in to continue your journey with Neothink+
-              </p>
-            </div>
-            
-            <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                className="space-y-2"
-              >
-                <label htmlFor="email" className="text-sm font-medium leading-none text-zinc-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-zinc-200">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  disabled={isLoading}
-                  placeholder="Enter your email"
-                  className={`flex h-11 w-full rounded-xl border bg-white/80 backdrop-blur px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-950/80 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 ${
-                    errors.email 
-                      ? "border-red-300 focus:border-red-400 focus:ring-red-400 dark:border-red-800 dark:focus:border-red-700 dark:focus:ring-red-700" 
-                      : "border-zinc-200 focus:border-zinc-400 focus:ring-zinc-400 dark:border-zinc-800 dark:focus:border-zinc-700 dark:focus:ring-zinc-700"
-                  }`}
-                  {...register("email")}
-                />
-                {errors.email && (
-                  <motion.p 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-sm text-red-500 dark:text-red-400"
-                  >
-                    {errors.email.message}
-                  </motion.p>
-                )}
-              </motion.div>
+    <div className="relative flex min-h-screen flex-col items-center justify-center py-12 sm:px-6 lg:px-8">
+      {/* Background gradient */}
+      <div className="fixed inset-0 bg-gradient-to-br from-zinc-100 via-white to-zinc-100 dark:from-black dark:via-zinc-900 dark:to-black" />
+      
+      {/* Ambient glow */}
+      <div className="fixed left-1/2 top-0 ml-[-20rem] h-[40rem] w-[40rem] rounded-full bg-orange-500/20 blur-3xl dark:bg-orange-400/10" />
+      <div className="fixed right-1/2 top-0 mr-[-20rem] h-[40rem] w-[40rem] rounded-full bg-amber-500/20 blur-3xl dark:bg-amber-400/10" />
+      
+      {/* Grid pattern */}
+      <div className="fixed inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] dark:bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)]" />
 
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-                className="space-y-2"
-              >
-                <label htmlFor="password" className="text-sm font-medium leading-none text-zinc-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-zinc-200">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    disabled={isLoading}
-                    placeholder="Enter your password"
-                    className={`flex h-11 w-full rounded-xl border bg-white/80 backdrop-blur px-3 py-2 text-sm ring-offset-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-950/80 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 ${
-                      errors.password 
-                        ? "border-red-300 focus:border-red-400 focus:ring-red-400 dark:border-red-800 dark:focus:border-red-700 dark:focus:ring-red-700" 
-                        : "border-zinc-200 focus:border-zinc-400 focus:ring-zinc-400 dark:border-zinc-800 dark:focus:border-zinc-700 dark:focus:ring-zinc-700"
-                    }`}
-                    {...register("password")}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
+      <div className="relative w-full max-w-md px-4 sm:px-6 lg:px-8">
+        {/* Card */}
+        <div className="relative">
+          {/* Card glow */}
+          <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-orange-500/30 via-amber-500/30 to-yellow-500/30 opacity-75 blur-lg transition duration-1000 group-hover:opacity-100 dark:from-orange-400/20 dark:via-amber-400/20 dark:to-yellow-400/20" />
+          
+          {/* Card content */}
+          <div className="relative overflow-hidden rounded-xl bg-white/80 shadow-xl shadow-black/5 backdrop-blur-lg transition duration-200 dark:bg-zinc-900/80 dark:shadow-zinc-900/30">
+            <div className="px-8 pt-8">
+              <div className="mx-auto max-w-md text-center">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10">
+                  <Sparkles className="h-8 w-8 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent" />
                 </div>
-                {errors.password && (
-                  <motion.p 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-sm text-red-500 dark:text-red-400"
-                  >
-                    {errors.password.message}
-                  </motion.p>
-                )}
-              </motion.div>
-
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-                className="flex items-center justify-between"
-              >
-                <div className="flex items-center space-x-2">
-                  <input
-                    id="remember"
-                    type="checkbox"
-                    className="h-4 w-4 rounded-md border-zinc-300 text-orange-500 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-800 dark:ring-offset-zinc-900"
-                    {...register("remember")}
-                  />
-                  <label htmlFor="remember" className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Remember me
-                  </label>
-                </div>
-                <Link
-                  href="/auth/reset-password"
-                  className="text-sm text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300"
-                >
-                  Forgot password?
-                </Link>
-              </motion.div>
-
-              <motion.button
-                type="submit"
-                disabled={isLoading}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-                className="group relative inline-flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 px-4 py-2 text-sm font-medium text-white transition-all hover:from-amber-600 hover:via-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:from-amber-400 dark:via-orange-400 dark:to-red-400 dark:hover:from-amber-300 dark:hover:via-orange-300 dark:hover:to-red-300"
-              >
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Signing in...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    Sign in
-                    <motion.span
-                      initial={{ x: 0 }}
-                      whileHover={{ x: 4 }}
-                      className="inline-block"
-                    >
-                      →
-                    </motion.span>
-                  </span>
-                )}
-              </motion.button>
-
-              {toast && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`rounded-xl border p-4 ${
-                    toast.type === "error" 
-                      ? "border-red-200 bg-red-50 text-red-900 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-300"
-                      : "border-green-200 bg-green-50 text-green-900 dark:border-green-900/50 dark:bg-green-900/20 dark:text-green-300"
-                  }`}
-                >
-                  <p className="text-sm font-medium">{toast.title}</p>
-                  <p className="text-sm mt-1">{toast.description}</p>
-                </motion.div>
-              )}
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-zinc-200 dark:border-zinc-700" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-2 text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
-                    Don't have an account?
-                  </span>
-                </div>
+                <h1 className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-2xl font-bold tracking-tight text-transparent sm:text-3xl dark:from-amber-400 dark:via-orange-400 dark:to-red-400">
+                  Welcome Back
+                </h1>
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  Sign in to continue your journey with Neothink+
+                </p>
               </div>
+            </div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7, duration: 0.5 }}
-              >
-                <Link 
-                  href="/auth/signup"
-                  className="group inline-flex h-11 w-full items-center justify-center rounded-xl border-2 border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:bg-zinc-800"
-                >
-                  <span className="flex items-center gap-2">
-                    Create an account
-                    <motion.span
-                      initial={{ x: 0 }}
-                      whileHover={{ x: 4 }}
-                      className="inline-block"
+            <div className="p-8">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <div className="space-y-2">
+                  <label htmlFor="email" className="text-sm font-medium leading-none text-zinc-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-zinc-200">
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    autoComplete="email"
+                    disabled={isLoading}
+                    placeholder="Enter your email"
+                    className={cn(
+                      "flex h-11 w-full rounded-xl border bg-white/80 px-3 py-2 text-sm ring-offset-white backdrop-blur placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-950/80 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400",
+                      errors.email
+                        ? "border-red-300 focus:border-red-400 focus:ring-red-400 dark:border-red-800 dark:focus:border-red-700 dark:focus:ring-red-700"
+                        : "border-zinc-200 focus:border-zinc-400 focus:ring-zinc-400 dark:border-zinc-800 dark:focus:border-zinc-700 dark:focus:ring-zinc-700"
+                    )}
+                    {...register("email")}
+                  />
+                  {errors.email && (
+                    <p className="text-sm font-medium text-red-500 dark:text-red-400">
+                      {errors.email.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="password" className="text-sm font-medium leading-none text-zinc-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-zinc-200">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      disabled={isLoading}
+                      placeholder="Enter your password"
+                      className={cn(
+                        "flex h-11 w-full rounded-xl border bg-white/80 px-3 py-2 text-sm ring-offset-white backdrop-blur placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-950/80 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400",
+                        errors.password
+                          ? "border-red-300 focus:border-red-400 focus:ring-red-400 dark:border-red-800 dark:focus:border-red-700 dark:focus:ring-red-700"
+                          : "border-zinc-200 focus:border-zinc-400 focus:ring-zinc-400 dark:border-zinc-800 dark:focus:border-zinc-700 dark:focus:ring-zinc-700"
+                      )}
+                      {...register("password")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
                     >
-                      →
-                    </motion.span>
-                  </span>
-                </Link>
-              </motion.div>
-            </form>
-          </div>
-        </motion.div>
-      </div>
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="text-sm font-medium text-red-500 dark:text-red-400">
+                      {errors.password.message}
+                    </p>
+                  )}
+                </div>
 
-      {/* Background gradient effects */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1 }}
-          className="absolute -top-1/2 -right-1/4 w-96 h-96 bg-amber-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob dark:bg-amber-900/30" 
-        />
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="absolute -bottom-1/2 -left-1/4 w-96 h-96 bg-orange-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 dark:bg-orange-900/30" 
-        />
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 0.4 }}
-          className="absolute top-1/2 left-1/2 w-96 h-96 bg-red-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 dark:bg-red-900/30" 
-        />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      id="remember"
+                      type="checkbox"
+                      className="h-4 w-4 rounded-md border-zinc-300 text-orange-500 focus:ring-orange-500 dark:border-zinc-700 dark:bg-zinc-800 dark:ring-offset-zinc-900"
+                      {...register("remember")}
+                    />
+                    <label htmlFor="remember" className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Remember me
+                    </label>
+                  </div>
+                  <Link
+                    href="/auth/reset-password"
+                    className="text-sm font-medium text-orange-600 hover:text-orange-500 dark:text-orange-400 dark:hover:text-orange-300"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 px-4 py-2 text-sm font-medium text-white transition-all hover:from-amber-600 hover:via-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:from-amber-400 dark:via-orange-400 dark:to-red-400 dark:hover:from-amber-300 dark:hover:via-orange-300 dark:hover:to-red-300"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Signing in...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      Sign in
+                      <span className="group-hover:translate-x-1 transition-transform">
+                        →
+                      </span>
+                    </span>
+                  )}
+                </button>
+
+                {toast && (
+                  <div className={cn(
+                    "rounded-xl border p-4 text-sm",
+                    toast.type === "error"
+                      ? "border-red-200 bg-red-50/50 text-red-600 backdrop-blur-sm dark:border-red-900/50 dark:bg-red-900/10 dark:text-red-400"
+                      : "border-green-200 bg-green-50/50 text-green-600 backdrop-blur-sm dark:border-green-900/50 dark:bg-green-900/10 dark:text-green-400"
+                  )}>
+                    <p className="font-medium">{toast.title}</p>
+                    <p className="mt-1">{toast.description}</p>
+                  </div>
+                )}
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="bg-white/80 px-2 text-zinc-500 backdrop-blur dark:bg-zinc-900/80 dark:text-zinc-400">
+                      Don't have an account?
+                    </span>
+                  </div>
+                </div>
+
+                <Link
+                  href="/auth/signup"
+                  className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-zinc-200 bg-white/50 px-4 py-2 text-sm font-medium text-zinc-900 backdrop-blur-sm transition-all hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-400 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-zinc-100 dark:hover:bg-zinc-900/50 dark:focus:ring-zinc-800"
+                >
+                  Create an account
+                </Link>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
