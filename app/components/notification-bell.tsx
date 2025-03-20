@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, Check, Trash2 } from 'lucide-react'
+import { Bell, Check, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNotifications } from '@/context/notification-context'
 import { createBrowserClient } from '@supabase/ssr'
@@ -48,58 +48,56 @@ const getNotificationIcon = (type: string) => {
       return '👨‍🏫'
     case 'community':
       return '👥'
+    case 'update':
+      return '📢'
     default:
       return '📢'
   }
 }
 
+const getTypeColor = (type: string) => {
+  switch (type) {
+    case 'achievement':
+    case 'milestone':
+    case 'innovation':
+    case 'streak':
+      return 'text-amber-500 dark:text-amber-400'
+    case 'system':
+    case 'security':
+    case 'update':
+      return 'text-orange-500 dark:text-orange-400'
+    case 'pathway':
+    case 'content':
+    case 'feedback':
+      return 'text-blue-500 dark:text-blue-400'
+    case 'reminder':
+    case 'goal':
+    case 'mentorship':
+      return 'text-green-500 dark:text-green-400'
+    case 'profile':
+    case 'community':
+    case 'collaboration':
+      return 'text-purple-500 dark:text-purple-400'
+    default:
+      return 'text-zinc-500 dark:text-zinc-400'
+  }
+}
+
 export function NotificationBell() {
-  const { notifications, setNotifications } = useNotifications()
+  const { notifications, markAsRead, deleteNotification, markAllAsRead } = useNotifications()
   const [isOpen, setIsOpen] = useState(false)
   const unreadCount = notifications.filter(n => !n.read).length
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
 
   useEffect(() => {
     if (!isOpen) return
-    const markAllRead = async () => {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('read', false)
-
-      if (!error) {
-        setNotifications(notifications.map(n => ({ ...n, read: true })))
-      }
-    }
-    markAllRead()
-  }, [isOpen, notifications, setNotifications, supabase])
-
-  const handleDelete = async (id: string) => {
-    const { error } = await supabase
-      .from('notifications')
-      .delete()
-      .eq('id', id)
-
-    if (!error) {
-      setNotifications(notifications.filter(n => n.id !== id))
-    }
-  }
-
-  const handleMarkAsRead = async (id: string) => {
-    const { error } = await supabase
-      .from('notifications')
-      .update({ read: true })
-      .eq('id', id)
-
-    if (!error) {
-      setNotifications(notifications.map(n => 
-        n.id === id ? { ...n, read: true } : n
-      ))
-    }
-  }
+    
+    // Small delay so user can see which ones are unread before marking them as read
+    const timer = setTimeout(() => {
+      markAllAsRead()
+    }, 1500)
+    
+    return () => clearTimeout(timer)
+  }, [isOpen, markAllAsRead])
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -115,9 +113,9 @@ export function NotificationBell() {
             {unreadCount > 0 && (
               <motion.span
                 initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-medium text-white"
+                animate={{ scale: 1, transition: { type: 'spring', stiffness: 500, damping: 25 } }}
+                exit={{ scale: 0, opacity: 0, transition: { duration: 0.2 } }}
+                className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-primary text-[10px] font-medium text-white shadow-sm"
               >
                 {unreadCount}
               </motion.span>
@@ -125,90 +123,106 @@ export function NotificationBell() {
           </AnimatePresence>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[380px] max-h-[600px] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 border-b">
+      <DropdownMenuContent align="end" className="w-[380px] max-h-[600px] overflow-y-auto subtle-scroll">
+        <div className="flex items-center justify-between border-b p-4">
           <h3 className="font-semibold">Notifications</h3>
           {notifications.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setNotifications([])}
-              className="text-xs text-zinc-500 hover:text-zinc-900"
+              className="h-8 text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+              onClick={() => {
+                notifications.forEach(n => deleteNotification(n.id))
+              }}
             >
               Clear all
             </Button>
           )}
         </div>
         {notifications.length === 0 ? (
-          <div className="p-8 text-center">
-            <Bell className="h-8 w-8 mx-auto mb-4 text-zinc-300" />
-            <p className="text-sm font-medium text-zinc-500">No notifications yet</p>
-            <p className="text-xs text-zinc-400 mt-1">We'll notify you when something important happens</p>
+          <div className="p-12 text-center">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-zinc-800">
+              <Bell className="h-6 w-6" />
+            </div>
+            <p className="font-medium text-zinc-900 dark:text-zinc-100">No notifications yet</p>
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">We'll notify you when something important happens</p>
           </div>
         ) : (
-          <AnimatePresence>
+          <AnimatePresence initial={false}>
             {notifications.map((notification) => (
               <motion.div
                 key={notification.id}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: 'auto', y: 0 }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.2 }}
               >
                 <DropdownMenuItem
                   className={cn(
-                    'flex flex-col items-start p-4 border-b last:border-0 transition-colors',
-                    !notification.read && 'bg-zinc-50 dark:bg-zinc-800'
+                    'flex flex-col items-start p-0 focus:bg-transparent',
                   )}
                 >
-                  <div className="mb-1 flex w-full items-start justify-between gap-2">
-                    <div className="flex items-start gap-3">
-                      <span className="text-lg" role="img" aria-label={notification.type}>
-                        {getNotificationIcon(notification.type)}
-                      </span>
-                      <div className="flex-1">
-                        <span className="line-clamp-2 text-sm font-medium">
-                          {notification.title}
+                  <div className={cn(
+                    'flex w-full flex-col border-b p-4 transition-colors last:border-0',
+                    !notification.read && 'bg-zinc-50 dark:bg-zinc-800/50'
+                  )}>
+                    <div className="mb-1 flex w-full items-start justify-between gap-2">
+                      <div className="flex items-start gap-3">
+                        <span 
+                          className={cn(
+                            "flex h-8 w-8 items-center justify-center rounded-full text-base",
+                            getTypeColor(notification.type)
+                          )} 
+                          role="img" 
+                          aria-label={notification.type}
+                        >
+                          {getNotificationIcon(notification.type)}
                         </span>
-                        {notification.description && (
-                          <p className="line-clamp-2 text-sm text-zinc-500 mt-1">
-                            {notification.description}
-                          </p>
-                        )}
+                        <div className="flex-1">
+                          <span className="line-clamp-2 font-medium text-zinc-900 dark:text-zinc-100">
+                            {notification.title}
+                          </span>
+                          {notification.description && (
+                            <p className="mt-1 line-clamp-2 text-sm text-zinc-500 dark:text-zinc-400">
+                              {notification.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        handleDelete(notification.id)
-                      }}
-                      className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div className="mt-2 flex w-full items-center justify-between">
-                    <span className="text-xs text-zinc-500">
-                      {formatDistanceToNow(new Date(notification.created_at), {
-                        addSuffix: true,
-                      })}
-                    </span>
-                    {!notification.read && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                      <button
                         onClick={(e) => {
                           e.preventDefault()
                           e.stopPropagation()
-                          handleMarkAsRead(notification.id)
+                          deleteNotification(notification.id)
                         }}
-                        className="text-xs text-blue-500 hover:text-blue-700 p-0 h-auto font-normal"
+                        className="flex h-7 w-7 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                        aria-label="Delete notification"
                       >
-                        <Check className="h-4 w-4 mr-1" />
-                        Mark as read
-                      </Button>
-                    )}
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="mt-2 flex w-full items-center justify-between text-xs">
+                      <span className="text-zinc-500">
+                        {formatDistanceToNow(new Date(notification.created_at), {
+                          addSuffix: true,
+                        })}
+                      </span>
+                      {!notification.read && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            markAsRead(notification.id)
+                          }}
+                          className="h-auto p-0 text-xs font-normal text-blue-500 hover:bg-transparent hover:text-blue-700"
+                        >
+                          <Check className="mr-1 h-3 w-3" />
+                          Mark as read
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </DropdownMenuItem>
               </motion.div>
