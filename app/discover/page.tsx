@@ -7,6 +7,8 @@ import { Progress } from "@/components/ui/progress"
 import { ArrowRight, CheckCircle2, XCircle } from "lucide-react"
 import Link from "next/link"
 
+export const dynamic = 'force-dynamic'
+
 interface Question {
   id: number
   text: string
