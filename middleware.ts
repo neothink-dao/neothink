@@ -1,7 +1,63 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 import { isProtectedRoute, isPublicRoute, isStaticPath } from "@/lib/config/routes"
+
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: CookieOptions) {
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+        },
+      },
+    }
+  )
+
+  const { data: { session } } = await supabase.auth.getSession()
+
+  // Handle static paths
+  if (isStaticPath(request.nextUrl.pathname)) {
+    return response
+  }
+
+  // Handle public routes
+  if (isPublicRoute(request.nextUrl.pathname)) {
+    return response
+  }
+
+  // Handle protected routes
+  if (isProtectedRoute(request.nextUrl.pathname)) {
+    if (!session) {
+      const redirectUrl = new URL('/auth/sign-in', request.url)
+      redirectUrl.searchParams.set('redirectedFrom', request.nextUrl.pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
+  }
+
+  return response
+}
 
 export const config = {
   matcher: [
@@ -12,38 +68,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!_next/static|_next/image|favicon.ico|public).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
   ],
-}
-
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
-
-  // Refresh session if expired - required for Server Components
-  await supabase.auth.getSession()
-
-  // Protected routes that require authentication
-  const protectedRoutes = [
-    '/dashboard',
-    '/pathways',
-    '/profile',
-    '/settings'
-  ]
-
-  // Check if the current path is protected
-  const isProtectedRoute = protectedRoutes.some(route => 
-    req.nextUrl.pathname.startsWith(route)
-  )
-
-  if (isProtectedRoute) {
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (!session) {
-      // Redirect to login if accessing protected route without session
-      return NextResponse.redirect(new URL('/login', req.url))
-    }
-  }
-
-  return res
 }

@@ -1,32 +1,31 @@
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+export const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
-// Types for our database tables
-export type UserProfile = {
+export interface UserProfile {
   id: string
   email: string
   full_name: string | null
   avatar_url: string | null
-  created_at: string
-  updated_at: string
   pathway: 'ascender' | 'neothinker' | 'immortal' | null
-  current_phase: string | null
+  current_phase: 'discovery' | 'onboarding' | 'progressing' | 'endgame' | null
   superachiever_progress: {
     ascender: number
     neothinker: number
     immortal: number
   }
+  created_at: string
+  updated_at: string
 }
 
-export type ExperienceProgress = {
+export interface ExperienceProgress {
   id: string
   user_id: string
-  pathway: 'ascender' | 'neothinker' | 'immortal' | 'platform'
-  phase: string
+  pathway: 'ascender' | 'neothinker' | 'immortal'
+  phase: 'discovery' | 'onboarding' | 'progressing' | 'endgame'
   progress: number
   total: number
   completed_at: string | null
@@ -34,7 +33,7 @@ export type ExperienceProgress = {
   updated_at: string
 }
 
-export type Achievement = {
+export interface Achievement {
   id: string
   user_id: string
   title: string
@@ -47,7 +46,7 @@ export type Achievement = {
   updated_at: string
 }
 
-// Helper functions for common database operations
+// Helper functions for database operations
 export async function getUserProfile(userId: string) {
   const { data, error } = await supabase
     .from('user_profiles')
@@ -59,9 +58,34 @@ export async function getUserProfile(userId: string) {
   return data as UserProfile
 }
 
-export async function updateUserProgress(
+export async function updateUserProfile(userId: string, updates: Partial<UserProfile>) {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .update(updates)
+    .eq('id', userId)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as UserProfile
+}
+
+export async function getExperienceProgress(userId: string, pathway: string, phase: string) {
+  const { data, error } = await supabase
+    .from('experience_progress')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('pathway', pathway)
+    .eq('phase', phase)
+    .single()
+
+  if (error) throw error
+  return data as ExperienceProgress
+}
+
+export async function updateExperienceProgress(
   userId: string,
-  pathway: ExperienceProgress['pathway'],
+  pathway: string,
   phase: string,
   progress: number,
   total: number
@@ -75,7 +99,6 @@ export async function updateUserProgress(
       progress,
       total,
       completed_at: progress >= total ? new Date().toISOString() : null,
-      updated_at: new Date().toISOString()
     })
     .select()
     .single()
@@ -84,12 +107,11 @@ export async function updateUserProgress(
   return data as ExperienceProgress
 }
 
-export async function getUserAchievements(userId: string) {
+export async function getAchievements(userId: string) {
   const { data, error } = await supabase
     .from('achievements')
     .select('*')
     .eq('user_id', userId)
-    .order('created_at', { ascending: false })
 
   if (error) throw error
   return data as Achievement[]
@@ -113,7 +135,6 @@ export async function updateAchievement(
       progress,
       total,
       completed_at: progress >= total ? new Date().toISOString() : null,
-      updated_at: new Date().toISOString()
     })
     .select()
     .single()
