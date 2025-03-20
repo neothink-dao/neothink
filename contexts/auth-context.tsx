@@ -2,8 +2,9 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
-import { supabase, UserProfile } from '@/lib/supabase'
-import { AppError, errorMessages, handleError } from '@/lib/error-handling'
+import { createBrowserClient } from '@supabase/ssr'
+import { UserProfile } from '@/lib/supabase'
+import { AppError, handleError } from '@/lib/error-handling'
 
 interface AuthContextType {
   user: User | null
@@ -24,6 +25,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<AppError | null>(null)
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     // Check active sessions and sets the user

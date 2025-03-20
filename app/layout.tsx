@@ -1,8 +1,6 @@
-"use client"
-
 import { Inter } from "next/font/google"
-import { AuthProvider } from "@/contexts/auth-context"
 import { Toaster } from "@/components/ui/toaster"
+import { Providers } from "@/components/providers"
 import "./globals.css"
 
 const inter = Inter({
@@ -19,10 +17,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.className}>
       <body>
-        <AuthProvider>
+        <Providers>
           {children}
           <Toaster />
-        </AuthProvider>
+        </Providers>
       </body>
     </html>
   )
