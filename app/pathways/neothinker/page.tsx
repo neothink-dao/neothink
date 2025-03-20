@@ -79,11 +79,12 @@ export default function NeothinkerPathway() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="mt-10 flex items-center justify-center gap-x-6"
             >
-              <Link href="/auth/signup">
-                <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-white">
-                  Start Your Journey
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+              <Link
+                href="/auth/sign-up?pathway=neothinker"
+                className="inline-flex items-center justify-center rounded-lg bg-black px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-300"
+              >
+                Get started
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <Link href="#benefits">
                 <Button variant="outline" size="lg">
@@ -154,11 +155,12 @@ export default function NeothinkerPathway() {
               Join thousands of successful individuals who have already discovered their path to extraordinary happiness through the Neothinker pathway.
             </p>
             <div className="mt-10">
-              <Link href="/auth/signup">
-                <Button size="lg" className="bg-amber-500 hover:bg-amber-600 text-white">
-                  Start Your Neothink Journey
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+              <Link
+                href="/auth/sign-up?pathway=neothinker"
+                className="inline-flex items-center justify-center rounded-lg bg-black px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-4 focus:ring-gray-300"
+              >
+                Get started
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </div>
           </div>
