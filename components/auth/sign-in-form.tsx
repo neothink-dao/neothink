@@ -83,106 +83,140 @@ export function SignInForm() {
   }
 
   return (
-    <motion.form
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      onSubmit={onSubmit}
-      className="space-y-6 w-full max-w-md"
+      className="w-full max-w-md rounded-lg border border-border/50 bg-card p-6 shadow-xl"
     >
-      <ErrorAlert error={error} onDismiss={clearError} />
-      
-      {validationErrors.length > 0 && (
-        <div className="p-3 text-sm text-red-500 bg-red-500/10 rounded-md">
-          {formatValidationErrors(validationErrors)}
+      <div className="mb-8 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Sign in to your account to continue
+        </p>
+      </div>
+
+      <form onSubmit={onSubmit} className="space-y-6">
+        <ErrorAlert error={error} onDismiss={clearError} />
+        
+        {validationErrors.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-md bg-destructive/10 p-4 text-sm text-destructive"
+          >
+            {formatValidationErrors(validationErrors)}
+          </motion.div>
+        )}
+        
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-sm font-medium">
+              Email address
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              value={data.email}
+              onChange={(e) => setData({ ...data, email: e.target.value })}
+              placeholder="name@example.com"
+              required
+              disabled={isLoading}
+              className="h-11 bg-background/50"
+              autoComplete="email"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-sm font-medium">
+              Password
+            </Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={data.password}
+                onChange={(e) => setData({ ...data, password: e.target.value })}
+                placeholder="Enter your password"
+                required
+                disabled={isLoading}
+                className="h-11 bg-background/50 pr-10"
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          </div>
         </div>
-      )}
-      
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={data.email}
-          onChange={(e) => setData({ ...data, email: e.target.value })}
-          placeholder="Enter your email"
-          required
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="remember"
+              checked={rememberMe}
+              onCheckedChange={(checked) => setRememberMe(checked === true)}
+              disabled={isLoading}
+              className="border-border/50"
+            />
+            <Label
+              htmlFor="remember"
+              className="text-sm text-muted-foreground cursor-pointer select-none"
+            >
+              Remember me
+            </Label>
+          </div>
+          <Link
+            href="/auth/reset-password"
+            className="text-sm font-medium text-primary hover:text-primary/90 hover:underline"
+          >
+            Forgot password?
+          </Link>
+        </div>
+
+        <Button
+          type="submit"
+          className="h-11 w-full font-medium"
           disabled={isLoading}
-          className="bg-white/5 border-white/10"
-          autoComplete="email"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <div className="relative">
-          <Input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            value={data.password}
-            onChange={(e) => setData({ ...data, password: e.target.value })}
-            placeholder="Enter your password"
-            required
-            disabled={isLoading}
-            className="bg-white/5 border-white/10 pr-10"
-            autoComplete="current-password"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
-          >
-            {showPassword ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="remember"
-            checked={rememberMe}
-            onCheckedChange={(checked) => setRememberMe(checked === true)}
-            disabled={isLoading}
-          />
-          <Label
-            htmlFor="remember"
-            className="text-sm text-gray-400 cursor-pointer select-none"
-          >
-            Remember me
-          </Label>
-        </div>
-        <Link
-          href="/auth/reset-password"
-          className="text-sm text-primary hover:underline"
         >
-          Forgot password?
-        </Link>
-      </div>
+          {isLoading ? (
+            <>
+              <Loading size="sm" className="mr-2" />
+              Signing in...
+            </>
+          ) : (
+            "Sign in"
+          )}
+        </Button>
 
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <Loading size="sm" className="mr-2" />
-        ) : null}
-        Sign In
-      </Button>
+        <div className="relative my-8">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border/50" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">
+              New to NeoThink?
+            </span>
+          </div>
+        </div>
 
-      <p className="text-center text-sm text-gray-400">
-        Don't have an account?{" "}
-        <Link
-          href="/auth/sign-up"
-          className="text-primary hover:underline"
+        <Button
+          variant="outline"
+          className="h-11 w-full font-medium"
+          asChild
         >
-          Sign up
-        </Link>
-      </p>
-    </motion.form>
+          <Link href="/auth/sign-up">
+            Create an account
+          </Link>
+        </Button>
+      </form>
+    </motion.div>
   )
 } 
