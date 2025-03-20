@@ -4,8 +4,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 export const dynamic = 'force-dynamic'
 
-interface PageProps {
-  params: { slug: string }
+type PageProps = {
   searchParams: { [key: string]: string | string[] | undefined }
 }
 
