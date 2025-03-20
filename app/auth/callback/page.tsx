@@ -4,11 +4,13 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 export const dynamic = 'force-dynamic'
 
+interface PageParams {
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
 export default async function CallbackPage({
   searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined }
-}) {
+}: PageParams) {
   const supabase = createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
   const next = typeof searchParams.next === 'string' ? searchParams.next : undefined
