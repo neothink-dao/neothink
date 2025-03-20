@@ -12,7 +12,7 @@ import {
   ChevronDown,
 } from "lucide-react"
 import Link from "next/link"
-import { NotificationBell } from "@/components/ui/notification-bell"
+import { NotificationBell } from "@/app/components/notification-bell"
 
 export function DashboardTopBar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false)
