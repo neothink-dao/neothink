@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ArrowRight, CheckCircle2, XCircle } from "lucide-react"
 import Link from "next/link"
+import { useAuth } from "@/context/auth-context"
+import { useRouter } from "next/navigation"
 
 export const dynamic = 'force-dynamic'
 
@@ -74,10 +76,13 @@ const questions: Question[] = [
 ]
 
 export default function DiscoverPage() {
+  const router = useRouter()
+  const { user, supabase } = useAuth()
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [scores, setScores] = useState({ ascender: 0, neothinker: 0, immortal: 0 })
   const [showResults, setShowResults] = useState(false)
   const [selectedOption, setSelectedOption] = useState<number | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
 
   const handleOptionSelect = (optionIndex: number) => {
     setSelectedOption(optionIndex)
@@ -101,9 +106,35 @@ export default function DiscoverPage() {
 
   const getRecommendedPath = () => {
     const maxScore = Math.max(scores.ascender, scores.neothinker, scores.immortal)
-    if (maxScore === scores.ascender) return "Ascender"
-    if (maxScore === scores.neothinker) return "Neothinker"
-    return "Immortal"
+    if (maxScore === scores.ascender) return "ascender"
+    if (maxScore === scores.neothinker) return "neothinker"
+    return "immortal"
+  }
+
+  const handleUpdatePathway = async () => {
+    if (!user) return
+    
+    try {
+      setIsUpdating(true)
+      const pathway = getRecommendedPath()
+      
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ 
+          pathway,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", user.id)
+
+      if (updateError) throw updateError
+
+      // Redirect to the pathway page
+      router.push(`/pathways/${pathway}`)
+    } catch (error) {
+      console.error("Error updating pathway:", error)
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
   const progress = ((currentQuestion + 1) / questions.length) * 100
@@ -181,7 +212,7 @@ export default function DiscoverPage() {
                   
                   <div className="p-6 rounded-lg border border-orange-500 bg-orange-50 dark:border-orange-500 dark:bg-orange-950/20">
                     <h3 className="text-xl font-semibold text-orange-500 mb-2">
-                      {getRecommendedPath()}
+                      {getRecommendedPath().charAt(0).toUpperCase() + getRecommendedPath().slice(1)}
                     </h3>
                     <p className="text-zinc-600 dark:text-zinc-400">
                       Based on your responses, this pathway aligns best with your goals and values.
@@ -204,25 +235,72 @@ export default function DiscoverPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <Link href={`/pathways/${getRecommendedPath().toLowerCase()}`}>
-                      <Button size="lg" className="w-full bg-orange-500 hover:bg-orange-600 text-white">
-                        Learn More About {getRecommendedPath()}
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="w-full"
-                      onClick={() => {
-                        setCurrentQuestion(0)
-                        setScores({ ascender: 0, neothinker: 0, immortal: 0 })
-                        setShowResults(false)
-                        setSelectedOption(null)
-                      }}
-                    >
-                      Take the Assessment Again
-                    </Button>
+                    {user ? (
+                      // For authenticated users
+                      <>
+                        <Button 
+                          size="lg" 
+                          className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                          onClick={handleUpdatePathway}
+                          disabled={isUpdating}
+                        >
+                          {isUpdating ? "Updating..." : "Choose This Path"}
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="lg"
+                          className="w-full"
+                          onClick={() => {
+                            setCurrentQuestion(0)
+                            setScores({ ascender: 0, neothinker: 0, immortal: 0 })
+                            setShowResults(false)
+                            setSelectedOption(null)
+                          }}
+                        >
+                          Take the Assessment Again
+                        </Button>
+                      </>
+                    ) : (
+                      // For unauthenticated users
+                      <>
+                        <Link 
+                          href={`/auth/sign-up?pathway=${getRecommendedPath()}`}
+                          className="block"
+                        >
+                          <Button 
+                            size="lg" 
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                          >
+                            Start Your Journey
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Link href={`/pathways/${getRecommendedPath()}`}>
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className="w-full"
+                          >
+                            Learn More About This Path
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          size="lg"
+                          className="w-full"
+                          onClick={() => {
+                            setCurrentQuestion(0)
+                            setScores({ ascender: 0, neothinker: 0, immortal: 0 })
+                            setShowResults(false)
+                            setSelectedOption(null)
+                          }}
+                        >
+                          Take the Assessment Again
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </motion.div>
               )}

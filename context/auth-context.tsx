@@ -5,8 +5,10 @@ import { useSupabase } from "@/components/providers/supabase-provider"
 import type { User } from "@supabase/supabase-js"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter, useSearchParams } from "next/navigation"
-import { AppError } from "@/lib/error-handling"
+import { AppError, handleError } from "@/lib/error-handling"
 import { rateLimiter } from "@/lib/rate-limiter"
+import { createBrowserClient } from '@supabase/ssr'
+import { UserProfile, UserSettings } from '@/types'
 
 interface SignUpOptions {
   pathway: "ascender" | "neothinker" | "immortal"
@@ -14,6 +16,8 @@ interface SignUpOptions {
 
 interface AuthContextType {
   user: User | null
+  profile: UserProfile | null
+  settings: UserSettings | null
   loading: boolean
   error: AppError | null
   supabase: ReturnType<typeof useSupabase>["supabase"]
@@ -22,6 +26,8 @@ interface AuthContextType {
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
   updatePassword: (password: string) => Promise<void>
+  updateProfile: (data: Partial<UserProfile>) => Promise<void>
+  updateSettings: (data: Partial<UserSettings>) => Promise<void>
   clearError: () => void
 }
 
@@ -29,6 +35,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 function AuthContent({ children }: { children: React.ReactNode }): JSX.Element {
   const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [settings, setSettings] = useState<UserSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<AppError | null>(null)
   const { supabase } = useSupabase()
@@ -269,8 +277,81 @@ function AuthContent({ children }: { children: React.ReactNode }): JSX.Element {
     }
   }
 
+  async function fetchProfile(userId: string) {
+    try {
+      setLoading(true)
+      const [profileResult, settingsResult] = await Promise.all([
+        supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', userId)
+          .single(),
+        supabase
+          .from('user_settings')
+          .select('*')
+          .eq('user_id', userId)
+          .single()
+      ])
+
+      if (profileResult.error) throw profileResult.error
+      if (settingsResult.error) throw settingsResult.error
+
+      setProfile(profileResult.data)
+      setSettings(settingsResult.data)
+    } catch (error) {
+      setError(handleError(error))
+      console.error('Error fetching user data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function updateSettings(data: Partial<UserSettings>) {
+    try {
+      if (!user?.id) throw new Error('No user found')
+
+      const { error } = await supabase
+        .from('user_settings')
+        .upsert({
+          user_id: user.id,
+          ...data,
+          updated_at: new Date().toISOString(),
+        })
+
+      if (error) throw error
+
+      setSettings(prev => prev ? { ...prev, ...data } : null)
+    } catch (error) {
+      setError(handleError(error))
+      throw error
+    }
+  }
+
+  async function updateProfile(data: Partial<UserProfile>) {
+    try {
+      if (!user?.id) throw new Error('No user found')
+
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user.id,
+          ...data,
+          updated_at: new Date().toISOString(),
+        })
+
+      if (error) throw error
+
+      setProfile(prev => prev ? { ...prev, ...data } : null)
+    } catch (error) {
+      setError(handleError(error))
+      throw error
+    }
+  }
+
   const value = {
     user,
+    profile,
+    settings,
     loading,
     error,
     supabase,
@@ -279,6 +360,8 @@ function AuthContent({ children }: { children: React.ReactNode }): JSX.Element {
     signOut,
     resetPassword,
     updatePassword,
+    updateProfile,
+    updateSettings,
     clearError,
   }
 

@@ -85,17 +85,90 @@ export interface AuthResponse {
 }
 
 // Notification types
-export type NotificationType =
-  | "new_login"
-  | "password_changed"
-  | "account_deactivated"
-  | "password_reset_requested"
-  | "data_export_requested"
-  | "data_export_ready"
+export type NotificationType = 
+  | 'achievement'
+  | 'milestone'
+  | 'reminder'
+  | 'system'
+  | 'pathway'
+  | 'streak'
+  | 'content'
+  | 'profile'
+  | 'security'
+  | 'goal'
+  | 'innovation'
+  | 'feedback'
+  | 'collaboration'
+  | 'mentorship'
+  | 'community'
 
-export interface NotificationOptions {
+export type NotificationChannel = 'email' | 'push' | 'in_app';
+export type NotificationFrequency = 'instant' | 'daily' | 'weekly' | 'never';
+
+export interface Notification {
+  id: string
+  user_id: string
+  title: string
+  description?: string
   type: NotificationType
-  user: { email: string | null; id: string }
-  metadata: Record<string, any>
+  read: boolean
+  data?: Record<string, any>
+  created_at: string
+  updated_at: string
+}
+
+export interface NotificationPreferences {
+  id: string;
+  userId: string;
+  channel: NotificationChannel;
+  enabled: boolean;
+  frequency: NotificationFrequency;
+  quietHoursStart?: string;
+  quietHoursEnd?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserSettings {
+  id: string
+  user_id: string
+  theme: 'light' | 'dark' | 'system'
+  font_size: 'small' | 'normal' | 'large'
+  reduced_motion: boolean
+  high_contrast: boolean
+  email_notifications: boolean
+  push_notifications: boolean
+  sound_enabled: boolean
+  profile_visibility: 'public' | 'private'
+  show_online_status: boolean
+  show_progress: boolean
+  learning_style: 'visual' | 'auditory' | 'kinesthetic'
+  goal_reminders: boolean
+  progress_tracking: boolean
+  two_factor_enabled: boolean
+  login_alerts: boolean
+  device_history: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface UserProfile {
+  id: string
+  full_name: string | null
+  username: string | null
+  bio: string | null
+  avatar_url: string | null
+  pathway: 'ascender' | 'neothinker' | 'immortal' | null
+  onboarding_completed: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface NotificationContextType {
+  notifications: Notification[]
+  setNotifications: (notifications: Notification[]) => void
+  addNotification: (notification: Omit<Notification, 'id' | 'created_at' | 'updated_at'>) => void
+  removeNotification: (id: string) => void
+  clearNotifications: () => void
 }
 
