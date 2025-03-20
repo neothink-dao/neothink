@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Mail, XCircle, CheckCircle, ArrowLeft, RefreshCw, Clock, ExternalLink } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/context/auth-context"
 import { AnimatedTransition } from "@/components/ui/AnimatedTransition"
@@ -16,6 +16,7 @@ export default function VerifyPage() {
   const [isResending, setIsResending] = useState(false)
   const [toast, setToast] = useState<{ title: string; description: string; type?: 'success' | 'error' } | null>(null)
   const [resendCooldown, setResendCooldown] = useState(0)
+  const cooldownIntervalRef = useRef<NodeJS.Timeout>()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, supabase } = useAuth()
@@ -23,7 +24,6 @@ export default function VerifyPage() {
 
   useEffect(() => {
     let mounted = true
-    let cooldownInterval: NodeJS.Timeout
 
     async function verifyEmail() {
       try {
@@ -81,8 +81,8 @@ export default function VerifyPage() {
 
     return () => {
       mounted = false
-      if (cooldownInterval) {
-        clearInterval(cooldownInterval)
+      if (cooldownIntervalRef.current) {
+        clearInterval(cooldownIntervalRef.current)
       }
     }
   }, [router, user, next, supabase.auth])
@@ -98,6 +98,7 @@ export default function VerifyPage() {
         return prev - 1
       })
     }, 1000)
+    cooldownIntervalRef.current = interval
   }
 
   const resendEmail = async () => {
@@ -248,12 +249,7 @@ export default function VerifyPage() {
                     disabled={isResending || resendCooldown > 0 || !user?.email}
                     className="w-full"
                   >
-                    {isResending ? (
-                      <>
-                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        Sending...
-                      </>
-                    ) : resendCooldown > 0 ? (
+                    {resendCooldown > 0 ? (
                       <>
                         <Clock className="mr-2 h-4 w-4" />
                         Resend in {resendCooldown}s
@@ -261,33 +257,20 @@ export default function VerifyPage() {
                     ) : (
                       <>
                         <RefreshCw className="mr-2 h-4 w-4" />
-                        Resend Email
+                        Resend Verification Email
                       </>
                     )}
                   </Button>
 
-                  <Link
-                    href={`/auth/login${next ? `?next=${next}` : ""}`}
-                    className="inline-flex h-10 w-full items-center justify-center rounded-md border border-zinc-200 bg-white/80 backdrop-blur px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950/80 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                  >
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Return to Login
-                  </Link>
-                </div>
-
-                <div className="mt-6 space-y-2">
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Having trouble? Check your spam folder or contact{" "}
-                    <a 
-                      href="mailto:support@neothink.com" 
-                      className="text-zinc-900 hover:text-zinc-700 dark:text-zinc-200 dark:hover:text-zinc-300"
+                  <Link href="/auth/sign-in" className="block">
+                    <Button
+                      variant="ghost"
+                      className="w-full"
                     >
-                      support@neothink.com
-                    </a>
-                  </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    The verification link will expire in 24 hours.
-                  </p>
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Back to Sign In
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
