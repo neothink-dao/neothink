@@ -69,25 +69,29 @@ const pathwayConfig = {
         id: "discovery",
         title: "Discovery",
         description: "Understand how the Neothinker pathway can transform your life and relationships.",
-        icon: "globe" as const
+        icon: "globe" as const,
+        color: "amber"
       },
       {
         id: "onboarding",
         title: "Onboarding",
         description: "Begin your journey to integrated thinking and personal mastery.",
-        icon: "target" as const
+        icon: "target" as const,
+        color: "amber"
       },
       {
         id: "progressing",
         title: "Progressing",
         description: "Apply Neothink principles and transform your life.",
-        icon: "brain" as const
+        icon: "brain" as const,
+        color: "amber"
       },
       {
         id: "endgame",
         title: "Endgame",
         description: "Achieve true happiness and become a master of life.",
-        icon: "award" as const
+        icon: "award" as const,
+        color: "amber"
       }
     ]
   },
@@ -100,25 +104,29 @@ const pathwayConfig = {
         id: "discovery",
         title: "Discovery",
         description: "Learn how the Immortal pathway can transform your health and extend your life.",
-        icon: "globe" as const
+        icon: "globe" as const,
+        color: "red"
       },
       {
         id: "onboarding",
         title: "Onboarding",
         description: "Begin your journey to optimal health and longevity.",
-        icon: "target" as const
+        icon: "target" as const,
+        color: "red"
       },
       {
         id: "progressing",
         title: "Progressing",
         description: "Apply longevity principles and optimize your health.",
-        icon: "zap" as const
+        icon: "zap" as const,
+        color: "red"
       },
       {
         id: "endgame",
         title: "Endgame",
         description: "Achieve extraordinary health and become a master of longevity.",
-        icon: "award" as const
+        icon: "award" as const,
+        color: "red"
       }
     ]
   }
