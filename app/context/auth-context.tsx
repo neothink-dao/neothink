@@ -1,123 +1,134 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from "@supabase/ssr"
 import { useRouter } from "next/navigation"
 import { User } from "@supabase/supabase-js"
 
 interface AuthContextType {
   user: User | null
-  signUp: (email: string, password: string, options?: { pathway?: string }) => Promise<void>
+  loading: boolean
+  error: Error | null
   signIn: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
-  supabase: ReturnType<typeof createClientComponentClient>
+  resetPassword: (email: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
   const router = useRouter()
-  const supabase = createClientComponentClient()
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session?.user?.id)
-      setUser(session?.user ?? null)
-      setIsLoading(false)
-    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null)
+        setLoading(false)
+
+        if (event === 'SIGNED_IN') {
+          router.refresh()
+        }
+        if (event === 'SIGNED_OUT') {
+          router.refresh()
+          router.push('/auth/sign-in')
+        }
+      }
+    )
 
     return () => {
       subscription.unsubscribe()
     }
-  }, [supabase.auth])
+  }, [router, supabase])
 
-  const signUp = async (email: string, password: string, options?: { pathway?: string }) => {
+  async function signIn(email: string, password: string) {
     try {
-      console.log("Starting signup process...", { email, options })
-      
-      // Validate password strength
-      if (password.length < 8) {
-        throw new Error("Password must be at least 8 characters long")
-      }
-      if (!/[A-Z]/.test(password)) {
-        throw new Error("Password must contain at least one uppercase letter")
-      }
-      if (!/[a-z]/.test(password)) {
-        throw new Error("Password must contain at least one lowercase letter")
-      }
-      if (!/[0-9]/.test(password)) {
-        throw new Error("Password must contain at least one number")
-      }
-      if (!/[^A-Za-z0-9]/.test(password)) {
-        throw new Error("Password must contain at least one special character")
-      }
+      setLoading(true)
+      setError(null)
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (error) throw error
+    } catch (err) {
+      setError(err as Error)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
 
+  async function signUp(email: string, password: string) {
+    try {
+      setLoading(true)
+      setError(null)
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: options,
         },
       })
-
-      if (error) {
-        console.error("Signup error:", error)
-        throw error
-      }
-
-      console.log("Signup successful, redirecting to verification page...")
-      router.push("/auth/verify")
-    } catch (error: any) {
-      console.error("Signup error:", error)
-      throw error
+      if (error) throw error
+      router.push('/auth/verify')
+    } catch (err) {
+      setError(err as Error)
+      throw err
+    } finally {
+      setLoading(false)
     }
   }
 
-  const signIn = async (email: string, password: string) => {
+  async function signOut() {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (error) {
-        console.error("Signin error:", error)
-        throw error
-      }
-
-      router.push("/dashboard")
-    } catch (error: any) {
-      console.error("Signin error:", error)
-      throw error
-    }
-  }
-
-  const signOut = async () => {
-    try {
+      setLoading(true)
+      setError(null)
       const { error } = await supabase.auth.signOut()
       if (error) throw error
-      router.push("/auth/login")
-    } catch (error: any) {
-      console.error("Signout error:", error)
-      throw error
+    } catch (err) {
+      setError(err as Error)
+      throw err
+    } finally {
+      setLoading(false)
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent dark:border-orange-400" />
-      </div>
-    )
+  async function resetPassword(email: string) {
+    try {
+      setLoading(true)
+      setError(null)
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/update-password`,
+      })
+      if (error) throw error
+    } catch (err) {
+      setError(err as Error)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const value = {
+    user,
+    loading,
+    error,
+    signIn,
+    signUp,
+    signOut,
+    resetPassword,
   }
 
   return (
-    <AuthContext.Provider value={{ user, signUp, signIn, signOut, supabase }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )
@@ -126,7 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
+    throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
 } 
