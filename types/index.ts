@@ -101,6 +101,7 @@ export type NotificationType =
   | 'collaboration'
   | 'mentorship'
   | 'community'
+  | 'update'
 
 export type NotificationChannel = 'email' | 'push' | 'in_app'
 export type NotificationFrequency = 'instant' | 'daily' | 'weekly' | 'never'
