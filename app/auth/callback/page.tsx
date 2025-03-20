@@ -10,7 +10,7 @@ export default async function CallbackPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const resolvedSearchParams = await searchParams
-  const supabase = createServerSupabaseClient()
+  const supabase = await createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
   const next = typeof resolvedSearchParams.next === 'string' ? resolvedSearchParams.next : undefined
 
