@@ -14,7 +14,10 @@ import {
   CheckCircle2,
   Clock,
   Bell,
-  AlertCircle
+  AlertCircle,
+  Target,
+  Compass,
+  Settings
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "@/components/ui/use-toast"
@@ -25,7 +28,18 @@ interface OnboardingStep {
   description: string
   icon: React.ReactNode
   action?: () => Promise<void> | void
+  pathwayContent?: {
+    ascender?: { title: string; description: string }
+    neothinker?: { title: string; description: string }
+    immortal?: { title: string; description: string }
+  }
 }
+
+const pathwayColors = {
+  ascender: "orange",
+  neothinker: "amber",
+  immortal: "red"
+} as const
 
 export default function WelcomePage() {
   const router = useRouter()
@@ -40,7 +54,7 @@ export default function WelcomePage() {
     async function loadUserData() {
       try {
         if (!user?.id) {
-          router.push("/auth/signin")
+          router.push("/auth/sign-in")
           return
         }
 
@@ -101,7 +115,7 @@ export default function WelcomePage() {
   const handleCompleteOnboarding = async () => {
     try {
       if (!user?.id) {
-        router.push("/auth/signin")
+        router.push("/auth/sign-in")
         return
       }
 
@@ -113,8 +127,8 @@ export default function WelcomePage() {
       if (updateError) throw updateError
 
       toast({
-        title: "Welcome to Neothink!",
-        description: "Your journey begins now.",
+        title: `Welcome to the ${pathway?.charAt(0).toUpperCase()}${pathway?.slice(1)} Path!`,
+        description: "Your journey to extraordinary begins now.",
       })
 
       router.push("/dashboard")
@@ -147,37 +161,117 @@ export default function WelcomePage() {
   const onboardingSteps: OnboardingStep[] = [
     {
       id: "welcome",
-      title: "Welcome to Neothink",
-      description: `Welcome to your journey as a ${pathway || 'seeker'}! Let's get you started with everything you need to know.`,
+      title: "Welcome to Your Journey",
+      description: "Let's get you started on your path to transformation.",
       icon: <Sparkles className="h-6 w-6" />,
+      pathwayContent: {
+        ascender: {
+          title: "Welcome, Future Value Creator",
+          description: "Your journey to extraordinary wealth and business success begins here."
+        },
+        neothinker: {
+          title: "Welcome, Future Integrated Thinker",
+          description: "Your journey to extraordinary happiness and personal growth begins here."
+        },
+        immortal: {
+          title: "Welcome, Future Self-Leader",
+          description: "Your journey to extraordinary health and longevity begins here."
+        }
+      }
+    },
+    {
+      id: "goals",
+      title: "Set Your Goals",
+      description: "Define what success means to you and track your progress.",
+      icon: <Target className="h-6 w-6" />,
+      action: () => router.push("/goals"),
+      pathwayContent: {
+        ascender: {
+          title: "Business Goals",
+          description: "Set your wealth creation and business growth objectives."
+        },
+        neothinker: {
+          title: "Personal Goals",
+          description: "Define your happiness and personal development milestones."
+        },
+        immortal: {
+          title: "Health Goals",
+          description: "Establish your health optimization and longevity targets."
+        }
+      }
     },
     {
       id: "resources",
-      title: "Explore Resources",
-      description: "Access exclusive content, guides, and tools tailored to your pathway.",
+      title: "Access Your Resources",
+      description: "Explore tools and content tailored to your journey.",
       icon: <BookOpen className="h-6 w-6" />,
       action: () => router.push("/resources"),
+      pathwayContent: {
+        ascender: {
+          title: "Business Resources",
+          description: "Access the Ascension Platform, FLOW Training, and business tools."
+        },
+        neothinker: {
+          title: "Growth Resources",
+          description: "Access Neothink Courses, Prime Mentorship, and personal development tools."
+        },
+        immortal: {
+          title: "Health Resources",
+          description: "Access the Immortalis Platform, Project Life, and health optimization tools."
+        }
+      }
     },
     {
       id: "community",
-      title: "Join the Community",
-      description: "Connect with fellow seekers and share your journey.",
+      title: "Join Your Community",
+      description: "Connect with others on the same path.",
       icon: <Users className="h-6 w-6" />,
       action: () => router.push("/community"),
+      pathwayContent: {
+        ascender: {
+          title: "Ascenders Community",
+          description: "Network with successful entrepreneurs and value creators."
+        },
+        neothinker: {
+          title: "Neothinkers Community",
+          description: "Connect with integrated thinkers and personal growth enthusiasts."
+        },
+        immortal: {
+          title: "Immortals Community",
+          description: "Collaborate with health optimizers and longevity researchers."
+        }
+      }
     },
     {
-      id: "notifications",
-      title: "Stay Updated",
-      description: "Enable notifications to never miss important updates and events.",
-      icon: <Bell className="h-6 w-6" />,
+      id: "settings",
+      title: "Personalize Your Experience",
+      description: "Set up your preferences and notifications.",
+      icon: <Settings className="h-6 w-6" />,
       action: handleEnableNotifications,
-    },
+      pathwayContent: {
+        ascender: {
+          title: "Business Preferences",
+          description: "Set up your business alerts and networking preferences."
+        },
+        neothinker: {
+          title: "Growth Preferences",
+          description: "Set up your learning style and mentorship preferences."
+        },
+        immortal: {
+          title: "Health Preferences",
+          description: "Set up your health tracking and research preferences."
+        }
+      }
+    }
   ]
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent dark:border-orange-400" />
+        <div className="text-center space-y-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent dark:border-orange-400 mx-auto" />
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">Loading your journey...</p>
+        </div>
       </div>
     )
   }
@@ -189,11 +283,20 @@ export default function WelcomePage() {
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
           <p className="text-zinc-600 dark:text-zinc-400 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()}>Try Again</Button>
+          <Button 
+            onClick={() => window.location.reload()}
+            className="bg-orange-500 hover:bg-orange-600 text-white"
+          >
+            Try Again
+          </Button>
         </div>
       </div>
     )
   }
+
+  const currentStepData = onboardingSteps[currentStep]
+  const pathwaySpecificContent = pathway && currentStepData.pathwayContent?.[pathway]
+  const pathwayColor = pathway ? pathwayColors[pathway] : "orange"
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
@@ -210,9 +313,9 @@ export default function WelcomePage() {
                         <div
                           key={step.id}
                           className={cn(
-                            "h-2 w-2 rounded-full transition-colors",
+                            "h-2 w-8 rounded-full transition-colors",
                             index <= currentStep
-                              ? "bg-orange-500 dark:bg-orange-400"
+                              ? `bg-${pathwayColor}-500 dark:bg-${pathwayColor}-400`
                               : "bg-zinc-200 dark:bg-zinc-700"
                           )}
                         />
@@ -231,14 +334,14 @@ export default function WelcomePage() {
                     exit={{ opacity: 0, y: -20 }}
                     className="flex flex-col items-center text-center"
                   >
-                    <div className="rounded-full bg-orange-100 p-3 dark:bg-orange-900/30">
-                      {onboardingSteps[currentStep].icon}
+                    <div className={`rounded-full bg-${pathwayColor}-100 p-3 dark:bg-${pathwayColor}-900/30`}>
+                      {currentStepData.icon}
                     </div>
                     <h2 className="mt-4 text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-                      {onboardingSteps[currentStep].title}
+                      {pathwaySpecificContent?.title || currentStepData.title}
                     </h2>
                     <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-                      {onboardingSteps[currentStep].description}
+                      {pathwaySpecificContent?.description || currentStepData.description}
                     </p>
                   </motion.div>
 
@@ -253,19 +356,23 @@ export default function WelcomePage() {
                     </Button>
                     <Button
                       onClick={async () => {
+                        await handleStepAction()
                         if (currentStep === onboardingSteps.length - 1) {
                           await handleCompleteOnboarding()
                         } else {
-                          await handleStepAction()
                           setCurrentStep((prev) => prev + 1)
                         }
                       }}
+                      className={`bg-${pathwayColor}-500 hover:bg-${pathwayColor}-600 text-white`}
                     >
                       {currentStep === onboardingSteps.length - 1 ? (
-                        "Get Started"
+                        <>
+                          Begin Your Journey
+                          <Compass className="ml-2 h-4 w-4" />
+                        </>
                       ) : (
                         <>
-                          Next
+                          Continue
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </>
                       )}
@@ -279,16 +386,22 @@ export default function WelcomePage() {
                     </h3>
                     <ul className="mt-2 space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
                       <li className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        Complete your profile to get personalized recommendations
+                        <CheckCircle2 className={`h-4 w-4 text-${pathwayColor}-500`} />
+                        {pathway === "ascender" && "Set clear business goals and milestones"}
+                        {pathway === "neothinker" && "Define your personal growth objectives"}
+                        {pathway === "immortal" && "Establish your health optimization targets"}
                       </li>
                       <li className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-orange-500" />
-                        Set aside 15 minutes daily for your journey
+                        <Clock className={`h-4 w-4 text-${pathwayColor}-500`} />
+                        {pathway === "ascender" && "Dedicate time for business development"}
+                        {pathway === "neothinker" && "Schedule daily reflection time"}
+                        {pathway === "immortal" && "Plan your health optimization routine"}
                       </li>
                       <li className="flex items-center gap-2">
-                        <Bell className="h-4 w-4 text-blue-500" />
-                        Enable notifications to stay updated
+                        <Bell className={`h-4 w-4 text-${pathwayColor}-500`} />
+                        {pathway === "ascender" && "Stay updated on business opportunities"}
+                        {pathway === "neothinker" && "Get notified about growth insights"}
+                        {pathway === "immortal" && "Track your health progress"}
                       </li>
                     </ul>
                   </div>
@@ -301,9 +414,9 @@ export default function WelcomePage() {
 
       {/* Background gradient effects */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -top-1/2 -right-1/4 w-96 h-96 bg-amber-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob dark:bg-amber-900/30" />
-        <div className="absolute -bottom-1/2 -left-1/4 w-96 h-96 bg-orange-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 dark:bg-orange-900/30" />
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-red-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 dark:bg-red-900/30" />
+        <div className={`absolute -top-1/2 -right-1/4 w-96 h-96 bg-${pathwayColor}-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob dark:bg-${pathwayColor}-900/30`} />
+        <div className={`absolute -bottom-1/2 -left-1/4 w-96 h-96 bg-${pathwayColor}-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 dark:bg-${pathwayColor}-900/30`} />
+        <div className={`absolute top-1/2 left-1/2 w-96 h-96 bg-${pathwayColor}-100/50 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 dark:bg-${pathwayColor}-900/30`} />
       </div>
     </div>
   )
