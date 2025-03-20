@@ -17,19 +17,34 @@ export type Notification = {
   updated_at: string
 }
 
+export type NotificationPreference = {
+  id: string
+  user_id: string
+  channel: 'email' | 'push' | 'in_app'
+  enabled: boolean
+  frequency: 'instant' | 'daily' | 'weekly' | 'never'
+  quietHoursStart?: string
+  quietHoursEnd?: string
+}
+
 type NotificationContextType = {
   notifications: Notification[]
+  preferences: NotificationPreference[]
   setNotifications: (notifications: Notification[]) => void
   markAllAsRead: () => Promise<void>
   markAsRead: (id: string) => Promise<void>
   deleteNotification: (id: string) => Promise<void>
   addNotification: (notification: Omit<Notification, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => Promise<void>
+  updatePreferences: (preference: Omit<NotificationPreference, 'id' | 'user_id'>) => Promise<void>
+  loading: boolean
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const [preferences, setPreferences] = useState<NotificationPreference[]>([])
+  const [loading, setLoading] = useState(true)
   const { user } = useAuth()
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,22 +54,41 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (!user) return
 
-    const fetchNotifications = async () => {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+    const fetchData = async () => {
+      setLoading(true)
+      try {
+        const [notificationsResponse, preferencesResponse] = await Promise.all([
+          supabase
+            .from('notifications')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('notification_preferences')
+            .select('*')
+            .eq('user_id', user.id)
+        ])
 
-      if (error) {
-        toast.error('Failed to load notifications')
-        return
+        if (notificationsResponse.error) {
+          toast.error('Failed to load notifications')
+          return
+        }
+
+        if (preferencesResponse.error) {
+          toast.error('Failed to load notification preferences')
+          return
+        }
+
+        setNotifications(notificationsResponse.data || [])
+        setPreferences(preferencesResponse.data || [])
+      } catch (error) {
+        toast.error('Failed to load data')
+      } finally {
+        setLoading(false)
       }
-
-      setNotifications(data || [])
     }
 
-    fetchNotifications()
+    fetchData()
 
     // Subscribe to new notifications
     const channel = supabase
@@ -155,15 +189,44 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
   }
 
+  const updatePreferences = async (preference: Omit<NotificationPreference, 'id' | 'user_id'>) => {
+    if (!user) return
+
+    const { error } = await supabase
+      .from('notification_preferences')
+      .upsert([
+        {
+          ...preference,
+          user_id: user.id,
+        },
+      ])
+
+    if (error) {
+      toast.error('Failed to update notification preferences')
+      return
+    }
+
+    setPreferences(prevPreferences => 
+      prevPreferences.map(p => 
+        p.channel === preference.channel 
+          ? { ...p, ...preference }
+          : p
+      )
+    )
+  }
+
   return (
     <NotificationContext.Provider
       value={{
         notifications,
+        preferences,
         setNotifications,
         markAllAsRead,
         markAsRead,
         deleteNotification,
         addNotification,
+        updatePreferences,
+        loading,
       }}
     >
       {children}

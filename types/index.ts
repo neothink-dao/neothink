@@ -102,8 +102,8 @@ export type NotificationType =
   | 'mentorship'
   | 'community'
 
-export type NotificationChannel = 'email' | 'push' | 'in_app';
-export type NotificationFrequency = 'instant' | 'daily' | 'weekly' | 'never';
+export type NotificationChannel = 'email' | 'push' | 'in_app'
+export type NotificationFrequency = 'instant' | 'daily' | 'weekly' | 'never'
 
 export interface Notification {
   id: string
@@ -170,5 +170,15 @@ export interface NotificationContextType {
   addNotification: (notification: Omit<Notification, 'id' | 'created_at' | 'updated_at'>) => void
   removeNotification: (id: string) => void
   clearNotifications: () => void
+}
+
+export interface NotificationPreference {
+  id: string
+  user_id: string
+  channel: NotificationChannel
+  enabled: boolean
+  frequency: NotificationFrequency
+  quietHoursStart?: string
+  quietHoursEnd?: string
 }
 
