@@ -11,6 +11,8 @@ import { Eye, EyeOff, Sparkles } from "lucide-react"
 import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
+export const dynamic = 'force-dynamic'
+
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
