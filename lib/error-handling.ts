@@ -216,3 +216,69 @@ export function handleApiError(error: any): { statusCode: number; body: any } {
   }
 }
 
+export class AppError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public status: number = 400
+  ) {
+    super(message)
+    this.name = 'AppError'
+  }
+}
+
+export const errorMessages = {
+  auth: {
+    INVALID_CREDENTIALS: 'Invalid email or password',
+    EMAIL_NOT_VERIFIED: 'Please verify your email before continuing',
+    SESSION_EXPIRED: 'Your session has expired. Please sign in again.',
+    UNAUTHORIZED: 'You must be signed in to access this resource',
+  },
+  profile: {
+    NOT_FOUND: 'Profile not found',
+    UPDATE_FAILED: 'Failed to update profile',
+    INVALID_PATHWAY: 'Invalid pathway selected',
+  },
+  progress: {
+    UPDATE_FAILED: 'Failed to update progress',
+    INVALID_PHASE: 'Invalid phase selected',
+  },
+  achievements: {
+    UPDATE_FAILED: 'Failed to update achievement',
+    NOT_FOUND: 'Achievement not found',
+  },
+  validation: {
+    INVALID_EMAIL: 'Please enter a valid email address',
+    PASSWORD_TOO_SHORT: 'Password must be at least 8 characters',
+    REQUIRED_FIELD: 'This field is required',
+  },
+  server: {
+    INTERNAL_ERROR: 'An unexpected error occurred. Please try again later.',
+    SERVICE_UNAVAILABLE: 'Service is temporarily unavailable. Please try again later.',
+  },
+}
+
+export function handleError(error: unknown): AppError {
+  if (error instanceof AppError) {
+    return error
+  }
+
+  if (error instanceof Error) {
+    return new AppError(
+      error.message,
+      'UNKNOWN_ERROR',
+      500
+    )
+  }
+
+  return new AppError(
+    'An unexpected error occurred',
+    'UNKNOWN_ERROR',
+    500
+  )
+}
+
+export function isAppError(error: unknown): error is AppError {
+  return error instanceof AppError
+}
+

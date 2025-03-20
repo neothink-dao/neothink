@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
           {
             id: session.user.id,
             email: session.user.email,
+            pathway: session.user.user_metadata?.pathway,
             onboarding_completed: false,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),

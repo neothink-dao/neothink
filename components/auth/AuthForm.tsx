@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { PasswordInput } from "./password/PasswordInput"
+import { PasswordStrength } from "./password/PasswordStrength"
+import { SignupProgress } from "./SignupProgress"
 import { cn } from "@/lib/utils"
 
 const loginSchema = z.object({
@@ -14,7 +16,12 @@ const loginSchema = z.object({
 
 const signupSchema = z.object({
   email: z.string().email("Please enter a valid email"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
 })
 
 type LoginFormData = z.infer<typeof loginSchema>
@@ -25,18 +32,24 @@ interface AuthFormProps {
   onSubmit?: (email: string, password: string) => Promise<void>
   error?: string
   disabled?: boolean
+  currentStep?: number
+  totalSteps?: number
 }
 
-export function AuthForm({ type, onSubmit, error, disabled }: AuthFormProps) {
+export function AuthForm({ type, onSubmit, error, disabled, currentStep, totalSteps }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm<SignupFormData>({
     resolver: zodResolver(type === "login" ? loginSchema : signupSchema),
   })
+
+  const password = watch("password")
 
   const handleFormSubmit = async (data: SignupFormData) => {
     console.log("Form submitted:", data)
@@ -53,63 +66,57 @@ export function AuthForm({ type, onSubmit, error, disabled }: AuthFormProps) {
 
   return (
     <div className="w-full space-y-6">
+      {type === "signup" && currentStep && totalSteps && (
+        <SignupProgress currentStep={currentStep} totalSteps={totalSteps} />
+      )}
+
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <label
-            htmlFor="email"
-            className="text-sm font-medium leading-none text-zinc-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-zinc-200"
-          >
+          <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
             Email
           </label>
           <input
             id="email"
             type="email"
             autoComplete="email"
+            disabled={isLoading || disabled}
             className={cn(
-              "flex h-11 w-full rounded-xl border bg-white/80 px-3 py-2 text-sm ring-offset-white backdrop-blur placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-950/80 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400",
-              errors.email
-                ? "border-red-300 focus:border-red-400 focus:ring-red-400 dark:border-red-800 dark:focus:border-red-700 dark:focus:ring-red-700"
-                : "border-zinc-200 focus:border-zinc-400 focus:ring-zinc-400 dark:border-zinc-800 dark:focus:border-zinc-700 dark:focus:ring-zinc-700"
+              "flex h-10 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-zinc-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400 dark:focus-visible:ring-zinc-300",
+              errors.email && "border-red-500 focus-visible:ring-red-500 dark:border-red-400 dark:focus-visible:ring-red-400"
             )}
             {...register("email")}
-            disabled={isLoading || disabled}
-            placeholder="Enter your email"
           />
           {errors.email && (
-            <p className="text-sm font-medium text-red-500 dark:text-red-400">
+            <p className="text-sm text-red-500 dark:text-red-400">
               {errors.email.message}
             </p>
           )}
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="password"
-            className="text-sm font-medium leading-none text-zinc-900 peer-disabled:cursor-not-allowed peer-disabled:opacity-70 dark:text-zinc-200"
-          >
+          <label htmlFor="password" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
             Password
           </label>
           <PasswordInput
             id="password"
-            className={cn(
-              "flex h-11 w-full rounded-xl border bg-white/80 px-3 py-2 text-sm ring-offset-white backdrop-blur placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-950/80 dark:ring-offset-zinc-950 dark:placeholder:text-zinc-400",
-              errors.password
-                ? "border-red-300 focus:border-red-400 focus:ring-red-400 dark:border-red-800 dark:focus:border-red-700 dark:focus:ring-red-700"
-                : "border-zinc-200 focus:border-zinc-400 focus:ring-zinc-400 dark:border-zinc-800 dark:focus:border-zinc-700 dark:focus:ring-zinc-700"
-            )}
-            {...register("password")}
             disabled={isLoading || disabled}
-            placeholder="Enter your password"
+            error={!!errors.password}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            {...register("password")}
           />
           {errors.password && (
-            <p className="text-sm font-medium text-red-500 dark:text-red-400">
+            <p className="text-sm text-red-500 dark:text-red-400">
               {errors.password.message}
             </p>
+          )}
+          {type === "signup" && password && (
+            <PasswordStrength password={password} />
           )}
         </div>
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50/50 p-4 text-sm text-red-600 backdrop-blur-sm dark:border-red-900/50 dark:bg-red-900/10 dark:text-red-400">
+          <div className="rounded-md bg-red-50 p-3 text-sm text-red-500 dark:bg-red-900/20 dark:text-red-400">
             {error}
           </div>
         )}
@@ -117,20 +124,18 @@ export function AuthForm({ type, onSubmit, error, disabled }: AuthFormProps) {
         <button
           type="submit"
           disabled={isLoading || disabled}
-          className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 px-4 py-2 text-sm font-medium text-white transition-all hover:from-amber-600 hover:via-orange-600 hover:to-red-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:from-amber-400 dark:via-orange-400 dark:to-red-400 dark:hover:from-amber-300 dark:hover:via-orange-300 dark:hover:to-red-300"
+          className={cn(
+            "inline-flex h-10 w-full items-center justify-center rounded-md bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 px-4 py-2 text-sm font-medium text-white transition-all hover:from-amber-600 hover:via-orange-600 hover:to-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:from-amber-400 dark:via-orange-400 dark:to-red-400 dark:hover:from-amber-300 dark:hover:via-orange-300 dark:hover:to-red-300 dark:focus-visible:ring-zinc-300",
+            isLoading && "cursor-wait"
+          )}
         >
           {isLoading ? (
-            <span className="flex items-center gap-2">
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            <>
+              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               {type === "login" ? "Signing in..." : "Creating account..."}
-            </span>
+            </>
           ) : (
-            <span className="flex items-center gap-2">
-              {type === "login" ? "Sign in" : "Create account"}
-              <span className="group-hover:translate-x-1 transition-transform">
-                →
-              </span>
-            </span>
+            type === "login" ? "Sign in" : "Create account"
           )}
         </button>
       </form>

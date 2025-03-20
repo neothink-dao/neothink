@@ -6,12 +6,16 @@ import type { User } from "@supabase/supabase-js"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter, useSearchParams } from "next/navigation"
 
+interface SignUpOptions {
+  pathway: "ascender" | "neothinker" | "immortal"
+}
+
 interface AuthContextType {
   user: User | null
   loading: boolean
   supabase: ReturnType<typeof useSupabase>["supabase"]
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void>
+  signUp: (email: string, password: string, options?: SignUpOptions) => Promise<void>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
   updatePassword: (password: string) => Promise<void>
@@ -19,7 +23,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-function AuthContent({ children }: { children: React.ReactNode }) {
+function AuthContent({ children }: { children: React.ReactNode }): JSX.Element {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const { supabase } = useSupabase()
@@ -107,12 +111,15 @@ function AuthContent({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, options?: SignUpOptions) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          data: {
+            pathway: options?.pathway,
+          },
           emailRedirectTo: `${window.location.origin}/auth/callback?next=/welcome`
         }
       })
