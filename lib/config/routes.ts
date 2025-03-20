@@ -4,13 +4,15 @@ export const protectedRoutes = new Set([
   "/dashboard",
   "/profile",
   "/settings",
+  "/pathways",
+  "/discover",
 ])
 
 // Define public routes that don't require authentication
 export const publicRoutes = new Set([
   "/",
-  "/auth/login",
-  "/auth/signup",
+  "/auth/sign-in",
+  "/auth/sign-up",
   "/auth/reset-password",
   "/auth/update-password",
   "/auth/verify",
