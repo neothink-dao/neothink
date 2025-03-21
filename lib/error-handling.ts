@@ -43,6 +43,35 @@ const PUBLIC_ERROR_MESSAGES: Record<ErrorType, string> = {
   [ErrorType.INTERNAL]: "An internal server error occurred.",
 }
 
+// Define a logger that respects environment
+export const logger = {
+  error: (message: string, ...args: any[]) => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(message, ...args)
+    } else {
+      // In production, could send to a logging service
+      console.error(message)
+    }
+  },
+  warn: (message: string, ...args: any[]) => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(message, ...args)
+    } else {
+      console.warn(message)
+    }
+  },
+  info: (message: string, ...args: any[]) => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.info(message, ...args)
+    }
+  },
+  debug: (message: string, ...args: any[]) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(message, ...args)
+    }
+  }
+}
+
 /**
  * Create a structured error object
  */
@@ -81,20 +110,20 @@ export function logError(error: ErrorInfo): void {
   // Log based on severity
   switch (severity) {
     case ErrorSeverity.CRITICAL:
-      console.error("CRITICAL ERROR:", JSON.stringify(logEntry))
+      logger.error("CRITICAL ERROR:", JSON.stringify(logEntry))
       // In a production app, you might want to send alerts for critical errors
       break
     case ErrorSeverity.HIGH:
-      console.error("ERROR:", JSON.stringify(logEntry))
+      logger.error("ERROR:", JSON.stringify(logEntry))
       break
     case ErrorSeverity.MEDIUM:
-      console.warn("WARNING:", JSON.stringify(logEntry))
+      logger.warn("WARNING:", JSON.stringify(logEntry))
       break
     case ErrorSeverity.LOW:
-      console.info("INFO:", JSON.stringify(logEntry))
+      logger.info("INFO:", JSON.stringify(logEntry))
       break
     default:
-      console.log("LOG:", JSON.stringify(logEntry))
+      logger.debug("LOG:", JSON.stringify(logEntry))
   }
 }
 

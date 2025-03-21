@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { Notification, NotificationType } from '@/types'
 import { createServerClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/error-handling'
 
 interface SendNotificationOptions {
   userId: string
@@ -44,15 +45,35 @@ export async function sendNotification({
 
       // If we're in quiet hours, don't send immediate notification
       if (isInQuietHours(currentTime, start, end)) {
-        // TODO: Implement notification scheduling
-        return { success: false, reason: 'quiet_hours' }
+        // Schedule notification for after quiet hours
+        const scheduledTime = getEndOfQuietHours(now, end)
+        await supabase.from('notification_queue').insert({
+          user_id: userId,
+          title,
+          description,
+          type,
+          data,
+          scheduled_for: scheduledTime.toISOString(),
+        })
+        return { success: true, reason: 'scheduled_after_quiet_hours', scheduledFor: scheduledTime }
       }
     }
 
     // Check frequency
     if (preferences.frequency !== 'instant') {
-      // TODO: Implement notification batching
-      return { success: false, reason: 'batched' }
+      // Handle batched notifications
+      const batchFrequency = preferences.frequency || 'daily' // Default to daily if not specified
+      
+      await supabase.from('notification_queue').insert({
+        user_id: userId,
+        title,
+        description,
+        type,
+        data,
+        batch: batchFrequency,
+      })
+      
+      return { success: true, reason: 'batched', batchFrequency }
     }
 
     // Send notification
@@ -70,7 +91,7 @@ export async function sendNotification({
 
     return { success: true }
   } catch (error) {
-    console.error('Error sending notification:', error)
+    logger.error('Error sending notification:', error)
     return { success: false, error }
   }
 }
@@ -107,7 +128,7 @@ export async function deleteOldNotifications(userId: string, days = 30): Promise
 
     if (error) throw error
   } catch (error) {
-    console.error('Error deleting old notifications:', error)
+    logger.error('Error deleting old notifications:', error)
     throw error
   }
 }
@@ -124,7 +145,98 @@ export async function getUnreadCount(userId: string): Promise<number> {
 
     return count || 0
   } catch (error) {
-    console.error('Error getting unread count:', error)
+    logger.error('Error getting unread count:', error)
     throw error
+  }
+}
+
+// Helper function to get the end time of quiet hours
+function getEndOfQuietHours(now: Date, endTime: string): Date {
+  const [hours, minutes] = endTime.split(':').map(Number)
+  const endOfQuiet = new Date(now)
+  endOfQuiet.setHours(hours, minutes, 0, 0)
+  
+  // If the end time is earlier than current time, it means quiet hours end tomorrow
+  if (endOfQuiet < now) {
+    endOfQuiet.setDate(endOfQuiet.getDate() + 1)
+  }
+  
+  return endOfQuiet
+}
+
+// Processes the notification queue to send batched notifications
+export async function processBatchedNotifications(): Promise<void> {
+  try {
+    const supabase = await createServerClient()
+    
+    // Get current time
+    const now = new Date()
+    const currentHour = now.getHours()
+    
+    // Process daily batches at 9 AM
+    if (currentHour === 9) {
+      const { data: dailyBatch, error } = await supabase
+        .from('notification_queue')
+        .select('*')
+        .eq('batch', 'daily')
+        .lt('created_at', new Date(now.setHours(0, 0, 0, 0)).toISOString())
+      
+      if (error) throw error
+      
+      // Group by user to send one summary notification per user
+      const userBatches = dailyBatch?.reduce((acc, notification) => {
+        const { user_id } = notification
+        if (!acc[user_id]) {
+          acc[user_id] = []
+        }
+        acc[user_id].push(notification)
+        return acc
+      }, {} as Record<string, any[]>) || {}
+      
+      // Send batch notifications and clean up queue
+      const userIds = Object.keys(userBatches)
+      for (const userId of userIds) {
+        const batch = userBatches[userId]
+        const count = batch.length
+        
+        // Send a summary notification
+        await supabase.from('notifications').insert({
+          user_id: userId,
+          title: `You have ${count} new notifications`,
+          description: `${count} notifications from the past day`,
+          type: 'SUMMARY',
+          data: { items: batch },
+        })
+        
+        // Delete processed items from queue
+        const ids = batch.map((item: any) => item.id)
+        await supabase.from('notification_queue').delete().in('id', ids)
+      }
+    }
+    
+    // Process scheduled notifications that are due
+    const { data: scheduledNotifications, error: scheduledError } = await supabase
+      .from('notification_queue')
+      .select('*')
+      .is('batch', null)
+      .lt('scheduled_for', now.toISOString())
+    
+    if (scheduledError) throw scheduledError
+    
+    // Send each scheduled notification
+    for (const notification of scheduledNotifications || []) {
+      await supabase.from('notifications').insert({
+        user_id: notification.user_id,
+        title: notification.title,
+        description: notification.description,
+        type: notification.type,
+        data: notification.data,
+      })
+      
+      // Delete from queue after processing
+      await supabase.from('notification_queue').delete().eq('id', notification.id)
+    }
+  } catch (error) {
+    logger.error('Error processing batched notifications:', error)
   }
 } 
