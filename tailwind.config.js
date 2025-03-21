@@ -2,9 +2,9 @@
 module.exports = {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
     './src/**/*.{ts,tsx}',
   ],
   theme: {
@@ -25,59 +25,61 @@ module.exports = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        // Base neutral colors using Zinc palette
+        // Neutral colors using Zinc - Optimized for light/dark
         neutral: {
-          50: "rgb(250 250 250)",
-          100: "rgb(244 244 245)",
-          200: "rgb(228 228 231)",
-          300: "rgb(212 212 216)",
-          400: "rgb(161 161 170)",
-          500: "rgb(113 113 122)",
-          600: "rgb(82 82 91)",
-          700: "rgb(63 63 70)",
-          800: "rgb(39 39 42)",
-          900: "rgb(24 24 27)",
-          950: "rgb(9 9 11)",
+          50: '#fafafa',  // Lightest - Light mode background
+          100: '#f4f4f5', // Light mode subtle background
+          200: '#e4e4e7', // Light mode borders
+          300: '#d4d4d8', // Light mode subtle borders
+          400: '#a1a1aa', // Light mode muted text
+          500: '#71717a', // Light mode text
+          600: '#52525b', // Light mode strong text
+          700: '#3f3f46', // Dark mode subtle text
+          800: '#27272a', // Dark mode text
+          900: '#18181b', // Dark mode strong text
+          950: '#09090b', // Darkest - Dark mode background
         },
-        // Product-specific color palettes
+        // Ascender colors using Orange - Optimized for light/dark
         ascender: {
-          50: "rgb(255 247 237)",
-          100: "rgb(255 237 213)",
-          200: "rgb(254 215 170)",
-          300: "rgb(253 186 116)",
-          400: "rgb(251 146 60)",
-          500: "rgb(249 115 22)",
-          600: "rgb(234 88 12)",
-          700: "rgb(194 65 12)",
-          800: "rgb(154 52 18)",
-          900: "rgb(124 45 18)",
-          950: "rgb(67 20 7)",
+          50: '#fff7ed',  // Lightest - Light mode background
+          100: '#ffedd5', // Light mode subtle background
+          200: '#fed7aa', // Light mode borders
+          300: '#fdba74', // Light mode subtle borders
+          400: '#fb923c', // Light mode muted text
+          500: '#f97316', // Light mode primary
+          600: '#ea580c', // Light mode strong
+          700: '#c2410c', // Dark mode primary
+          800: '#9a3412', // Dark mode strong
+          900: '#7c2d12', // Dark mode text
+          950: '#431407', // Darkest - Dark mode background
         },
+        // Neothinker colors using Amber - Optimized for light/dark
         neothinker: {
-          50: "rgb(255 251 235)",
-          100: "rgb(254 243 199)",
-          200: "rgb(253 230 138)",
-          300: "rgb(252 211 77)",
-          400: "rgb(251 191 36)",
-          500: "rgb(245 158 11)",
-          600: "rgb(217 119 6)",
-          700: "rgb(180 83 9)",
-          800: "rgb(146 64 14)",
-          900: "rgb(120 53 15)",
-          950: "rgb(69 26 3)",
+          50: '#fffbeb',  // Lightest - Light mode background
+          100: '#fef3c7', // Light mode subtle background
+          200: '#fde68a', // Light mode borders
+          300: '#fcd34d', // Light mode subtle borders
+          400: '#fbbf24', // Light mode muted text
+          500: '#f59e0b', // Light mode primary
+          600: '#d97706', // Light mode strong
+          700: '#b45309', // Dark mode primary
+          800: '#92400e', // Dark mode strong
+          900: '#78350f', // Dark mode text
+          950: '#451a03', // Darkest - Dark mode background
         },
+        // Immortal colors using Red - Optimized for light/dark
         immortal: {
-          50: "rgb(254 242 242)",
-          100: "rgb(254 226 226)",
-          200: "rgb(254 202 202)",
-          300: "rgb(252 165 165)",
-          400: "rgb(248 113 113)",
-          500: "rgb(239 68 68)",
-          600: "rgb(220 38 38)",
-          700: "rgb(185 28 28)",
-          800: "rgb(153 27 27)",
-          900: "rgb(127 29 29)",
-          950: "rgb(69 10 10)",
+          50: '#fef2f2',  // Lightest - Light mode background
+          100: '#fee2e2', // Light mode subtle background
+          200: '#fecaca', // Light mode borders
+          300: '#fca5a5', // Light mode subtle borders
+          400: '#f87171', // Light mode muted text
+          500: '#ef4444', // Light mode primary
+          600: '#dc2626', // Light mode strong
+          700: '#b91c1c', // Dark mode primary
+          800: '#991b1b', // Dark mode strong
+          900: '#7f1d1d', // Dark mode text
+          950: '#450a0a', // Darkest - Dark mode background
         },
         primary: {
           DEFAULT: "hsl(var(--primary))",
@@ -109,15 +111,35 @@ module.exports = {
         },
       },
       backgroundImage: {
-        'gradient-primary': 'linear-gradient(to right, rgb(245 158 11), rgb(249 115 22), rgb(239 68 68))', // amber-500 -> orange-500 -> red-500
+        // Light mode gradients
+        'gradient-primary': 'linear-gradient(to right, rgb(245 158 11), rgb(249 115 22), rgb(239 68 68))',
         'gradient-primary-vertical': 'linear-gradient(to bottom, rgb(245 158 11), rgb(249 115 22), rgb(239 68 68))',
         'gradient-primary-diagonal': 'linear-gradient(to bottom right, rgb(245 158 11), rgb(249 115 22), rgb(239 68 68))',
-        'gradient-ascender': 'linear-gradient(to right, rgb(234 88 12), rgb(194 65 12))', // orange-600 -> orange-700
-        'gradient-neothinker': 'linear-gradient(to right, rgb(245 158 11), rgb(217 119 6))', // amber-500 -> amber-600
-        'gradient-immortal': 'linear-gradient(to right, rgb(239 68 68), rgb(220 38 38))', // red-500 -> red-600
+        
+        // Dark mode gradients
+        'gradient-primary-dark': 'linear-gradient(to right, rgb(180 83 9), rgb(194 65 12), rgb(185 28 28))',
+        'gradient-primary-dark-vertical': 'linear-gradient(to bottom, rgb(180 83 9), rgb(194 65 12), rgb(185 28 28))',
+        'gradient-primary-dark-diagonal': 'linear-gradient(to bottom right, rgb(180 83 9), rgb(194 65 12), rgb(185 28 28))',
+        
+        // Product-specific gradients - Light mode
+        'gradient-ascender': 'linear-gradient(to right, rgb(234 88 12), rgb(194 65 12))',
+        'gradient-neothinker': 'linear-gradient(to right, rgb(245 158 11), rgb(217 119 6))',
+        'gradient-immortal': 'linear-gradient(to right, rgb(239 68 68), rgb(220 38 38))',
+        
+        // Product-specific gradients - Dark mode
+        'gradient-ascender-dark': 'linear-gradient(to right, rgb(154 52 18), rgb(124 45 18))',
+        'gradient-neothinker-dark': 'linear-gradient(to right, rgb(180 83 9), rgb(146 64 14))',
+        'gradient-immortal-dark': 'linear-gradient(to right, rgb(185 28 28), rgb(153 27 27))',
+        
+        // Vertical variations - Light mode
         'gradient-ascender-vertical': 'linear-gradient(to bottom, rgb(234 88 12), rgb(194 65 12))',
         'gradient-neothinker-vertical': 'linear-gradient(to bottom, rgb(245 158 11), rgb(217 119 6))',
         'gradient-immortal-vertical': 'linear-gradient(to bottom, rgb(239 68 68), rgb(220 38 38))',
+        
+        // Vertical variations - Dark mode
+        'gradient-ascender-dark-vertical': 'linear-gradient(to bottom, rgb(154 52 18), rgb(124 45 18))',
+        'gradient-neothinker-dark-vertical': 'linear-gradient(to bottom, rgb(180 83 9), rgb(146 64 14))',
+        'gradient-immortal-dark-vertical': 'linear-gradient(to bottom, rgb(185 28 28), rgb(153 27 27))',
       },
       borderRadius: {
         lg: "var(--radius)",

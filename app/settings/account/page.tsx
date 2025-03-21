@@ -161,9 +161,20 @@ export default function AccountSettings() {
         </p>
         <Button
           variant="destructive"
-          onClick={() => {
-            // TODO: Implement account deletion
-            alert('Account deletion not implemented yet')
+          onClick={async () => {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+              setLoading(true)
+              setError(null)
+              try {
+                const supabase = await createServerClient()
+                const { error } = await supabase.auth.admin.deleteUser(user!.id)
+                if (error) throw error
+                window.location.href = '/auth/sign-in?message=account_deleted'
+              } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to delete account')
+                setLoading(false)
+              }
+            }
           }}
         >
           Delete Account
