@@ -34,3 +34,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# v0 temporary files
+v0-components/temp/
+v0-components/drafts/
