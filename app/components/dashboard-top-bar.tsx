@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/app/context/auth-context"
 import { cn } from "@/lib/utils"
 import {
   Search,

@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Brain } from "lucide-react"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/app/context/auth-context"
 import { checkAuth } from "./actions"
 import { Providers } from "@/app/providers"
 

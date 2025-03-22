@@ -1,28 +1,26 @@
-import type { ElementType } from "react"
 import { cn } from "@/lib/utils"
+import { ReactNode } from "react"
 
-interface ContainerProps<T extends ElementType = "div"> {
-  children: React.ReactNode
+interface ContainerProps<T extends React.ElementType> {
   as?: T
+  children: ReactNode
   className?: string
-  [key: string]: any
 }
 
-export function Container<T extends ElementType = "div">({
+export function Container<T extends React.ElementType = "div">({
+  as,
   children,
-  as: Component = "div" as T,
   className,
-  ...props
 }: ContainerProps<T>) {
+  const Component = as || "div"
   return (
     <Component
       className={cn(
         "mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8",
         // Section spacing utilities
-        "py-4 sm:py-6 lg:py-8",
+        "py-8 sm:py-12 md:py-16 lg:py-20",
         className
       )}
-      {...props}
     >
       {children}
     </Component>

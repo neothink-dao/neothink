@@ -48,12 +48,12 @@ export default function OnboardingPage() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mt-8"
         >
-          <Button asChild size="lg" className="gap-2">
-            <Link href="/onboarding/quiz">
+          <Link href="/onboarding/quiz">
+            <Button size="lg" className="gap-2">
               Start Assessment
               <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </motion.div>
       </div>
 

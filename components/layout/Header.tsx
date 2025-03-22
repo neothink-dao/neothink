@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
 import { useSupabase } from "@/components/providers/supabase-provider"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/app/context/auth-context"
 import { useTheme } from 'next-themes'
 import { Navigation, MobileNavigation } from './Navigation'
 import { Button } from '@/components/ui/button'

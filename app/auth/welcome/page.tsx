@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic"
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/app/context/auth-context"
 import { Suspense } from "react"
 
 function WelcomeContent() {

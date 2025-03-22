@@ -1,222 +1,140 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useAuth } from "@/context/auth-context"
-import { AppError } from "@/lib/error-handling"
-import { validateEmail, validatePassword, formatValidationErrors } from "@/lib/validation"
-import { Loading } from "@/components/ui/loading"
-import { ErrorAlert } from "@/components/ui/error-alert"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { useAuth } from "@/app/context/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
-import { motion } from "framer-motion"
-import Link from "next/link"
 import { Eye, EyeOff } from "lucide-react"
+import { validateEmail } from "@/lib/validation"
 
 export function SignInForm() {
-  const { signIn, error, clearError } = useAuth()
+  const { signIn } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
-  const [validationErrors, setValidationErrors] = useState<string[]>([])
-  const [data, setData] = useState({
-    email: "",
-    password: "",
-  })
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
-  useEffect(() => {
-    // Clear any existing errors when the component mounts
-    clearError()
-    setValidationErrors([])
-    
-    // Check for saved email
-    const savedEmail = localStorage.getItem("rememberedEmail")
-    if (savedEmail) {
-      setData(prev => ({ ...prev, email: savedEmail }))
-      setRememberMe(true)
-    }
-  }, [])
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
 
-  const validateForm = (): boolean => {
-    const errors: string[] = []
-    
-    const emailValidation = validateEmail(data.email)
+    // Validate email
+    const emailValidation = validateEmail(email)
     if (!emailValidation.isValid) {
-      errors.push(...emailValidation.errors)
-    }
-
-    const passwordValidation = validatePassword(data.password)
-    if (!passwordValidation.isValid) {
-      errors.push(...passwordValidation.errors)
-    }
-
-    setValidationErrors(errors)
-    return errors.length === 0
-  }
-
-  async function onSubmit(event: React.SyntheticEvent) {
-    event.preventDefault()
-    setValidationErrors([])
-    clearError()
-
-    if (!validateForm()) {
+      setError(emailValidation.errors[0])
       return
     }
 
-    setIsLoading(true)
+    // Validate password
+    if (!password) {
+      setError("Please enter your password")
+      return
+    }
 
     try {
-      await signIn(data.email, data.password, rememberMe)
+      setIsLoading(true)
+      const { error: signInError } = await signIn(email, password)
       
-      // Save email if remember me is checked
-      if (rememberMe) {
-        localStorage.setItem("rememberedEmail", data.email)
-      } else {
-        localStorage.removeItem("rememberedEmail")
+      if (signInError) {
+        setError(signInError.message)
+        return
       }
-    } catch (error) {
-      // Error is already handled by the auth context
+
+      router.push("/dashboard")
+    } catch (err) {
+      console.error("Sign in error:", err)
+      setError("An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-md rounded-lg border border-border/50 bg-card p-6 shadow-xl"
-    >
-      <div className="mb-8 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Sign in to your account to continue
-        </p>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <Alert variant="error">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isLoading}
+          required
+        />
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-6">
-        <ErrorAlert error={error} onDismiss={clearError} />
-        
-        {validationErrors.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-md bg-destructive/10 p-4 text-sm text-destructive"
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
+            required
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-1/2 -translate-y-1/2"
+            onClick={() => setShowPassword(!showPassword)}
           >
-            {formatValidationErrors(validationErrors)}
-          </motion.div>
-        )}
-        
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium">
-              Email address
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={data.email}
-              onChange={(e) => setData({ ...data, email: e.target.value })}
-              placeholder="name@example.com"
-              required
-              disabled={isLoading}
-              className="h-11 bg-background/50"
-              autoComplete="email"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium">
-              Password
-            </Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={data.password}
-                onChange={(e) => setData({ ...data, password: e.target.value })}
-                placeholder="Enter your password"
-                required
-                disabled={isLoading}
-                className="h-11 bg-background/50 pr-10"
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/60 hover:text-muted-foreground"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </button>
-            </div>
-          </div>
+            {showPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </Button>
         </div>
+      </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="remember"
-              checked={rememberMe}
-              onCheckedChange={(checked) => setRememberMe(checked === true)}
-              disabled={isLoading}
-              className="border-border/50"
-            />
-            <Label
-              htmlFor="remember"
-              className="text-sm text-muted-foreground cursor-pointer select-none"
-            >
-              Remember me
-            </Label>
-          </div>
-          <Link
-            href="/auth/reset-password"
-            className="text-sm font-medium text-primary hover:text-primary/90 hover:underline"
-          >
-            Forgot password?
-          </Link>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="remember"
+            checked={rememberMe}
+            onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+          />
+          <Label htmlFor="remember" className="text-sm">
+            Remember me
+          </Label>
         </div>
-
-        <Button
-          type="submit"
-          className="h-11 w-full font-medium"
-          disabled={isLoading}
+        <Link
+          href="/auth/reset-password"
+          className="text-sm text-primary hover:underline"
         >
-          {isLoading ? (
-            <>
-              <Loading size="sm" className="mr-2" />
-              Signing in...
-            </>
-          ) : (
-            "Sign in"
-          )}
-        </Button>
+          Forgot password?
+        </Link>
+      </div>
 
-        <div className="relative my-8">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border/50" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">
-              New to NeoThink?
-            </span>
-          </div>
-        </div>
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? "Signing in..." : "Sign in"}
+      </Button>
 
-        <Button
-          variant="outline"
-          className="h-11 w-full font-medium"
-          asChild
-        >
-          <Link href="/auth/sign-up">
-            Create an account
-          </Link>
-        </Button>
-      </form>
-    </motion.div>
+      <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
+        Don't have an account?{" "}
+        <Link href="/auth/sign-up" className="text-primary hover:underline">
+          Sign up
+        </Link>
+      </p>
+    </form>
   )
 } 

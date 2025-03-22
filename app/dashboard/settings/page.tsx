@@ -1,401 +1,245 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/context/auth-context"
-import { motion } from "framer-motion"
+import { useAuth } from "@/app/context/auth-context"
+import { Container } from "@/components/ui/container"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { toast } from "@/components/ui/use-toast"
-import {
-  Bell,
-  Moon,
-  Sun,
-  Shield,
-  Eye,
-  Globe,
-  Palette,
-  Volume2,
-  BellRing,
-  Mail,
-  Smartphone,
-  Brain,
-  Rocket,
-  Zap,
-} from "lucide-react"
-import { NotificationSettings } from "@/components/ui/notification-settings"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { createBrowserClient } from "@supabase/ssr"
+
+interface Settings {
+  theme: "light" | "dark" | "system"
+  notifications: {
+    email: boolean
+    push: boolean
+  }
+  profile: {
+    name: string
+    bio: string
+  }
+}
 
 export default function SettingsPage() {
   const router = useRouter()
-  const { user, supabase } = useAuth()
+  const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
-  const [settings, setSettings] = useState({
-    // Appearance
+  const [settings, setSettings] = useState<Settings>({
     theme: "system",
-    fontSize: "normal",
-    reducedMotion: false,
-    highContrast: false,
-    
-    // Notifications
-    emailNotifications: true,
-    pushNotifications: true,
-    soundEnabled: true,
-    
-    // Privacy
-    profileVisibility: "public",
-    showOnlineStatus: true,
-    showProgress: true,
-    
-    // Pathway Preferences
-    learningStyle: "visual",
-    goalReminders: true,
-    progressTracking: true,
-    
-    // Security
-    twoFactorEnabled: false,
-    loginAlerts: true,
-    deviceHistory: true,
+    notifications: {
+      email: true,
+      push: true,
+    },
+    profile: {
+      name: "",
+      bio: "",
+    },
   })
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
+    if (!user) {
+      router.push("/auth/sign-in")
+      return
+    }
+
     async function loadSettings() {
       try {
-        if (!user?.id) {
-          router.push("/auth/sign-in")
-          return
-        }
-
-        const { data: userSettings, error } = await supabase
+        const { data, error } = await supabase
           .from("user_settings")
           .select("*")
-          .eq("user_id", user.id)
+          .eq("user_id", user?.id)
           .single()
 
         if (error) throw error
 
-        if (userSettings) {
-          setSettings(prev => ({ ...prev, ...userSettings }))
+        if (data) {
+          setSettings({
+            ...settings,
+            ...data,
+          })
         }
-
-        setIsLoading(false)
       } catch (error) {
         console.error("Error loading settings:", error)
-        toast({
-          title: "Error",
-          description: "Failed to load your settings. Please try again.",
-          variant: "destructive",
-        })
+        setError("Failed to load settings")
+      } finally {
+        setIsLoading(false)
       }
     }
 
     loadSettings()
-  }, [user, supabase, router])
+  }, [user, router])
 
-  const updateSetting = async (key: string, value: any) => {
+  const handleSave = async () => {
+    if (!user) {
+      setError("You must be signed in to save settings")
+      return
+    }
+
+    setIsSaving(true)
+    setError(null)
+    setSuccessMessage(null)
+
     try {
-      setSettings(prev => ({ ...prev, [key]: value }))
-
       const { error } = await supabase
         .from("user_settings")
         .upsert({
-          user_id: user?.id,
-          [key]: value,
-          updated_at: new Date().toISOString(),
+          user_id: user.id,
+          ...settings,
         })
 
       if (error) throw error
 
-      toast({
-        title: "Settings updated",
-        description: "Your preferences have been saved.",
-      })
+      setSuccessMessage("Settings saved successfully")
     } catch (error) {
-      console.error("Error updating setting:", error)
-      toast({
-        title: "Error",
-        description: "Failed to update setting. Please try again.",
-        variant: "destructive",
-      })
+      console.error("Error saving settings:", error)
+      setError("Failed to save settings")
+    } finally {
+      setIsSaving(false)
     }
   }
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-orange-500 border-t-transparent dark:border-orange-400 mx-auto" />
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">Loading your settings...</p>
-        </div>
-      </div>
+      <Container className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </Container>
+    )
+  }
+
+  if (!user) {
+    return (
+      <Container className="flex items-center justify-center min-h-screen">
+        <Card>
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>
+              Please sign in to access your settings.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.push("/auth/sign-in")}>
+              Sign In
+            </Button>
+          </CardContent>
+        </Card>
+      </Container>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-            Settings
-          </h1>
-          <p className="mt-2 text-lg text-zinc-600 dark:text-zinc-400">
-            Manage your preferences and customize your experience
-          </p>
-        </div>
+    <Container>
+      <Card>
+        <CardHeader>
+          <CardTitle>Settings</CardTitle>
+          <CardDescription>
+            Manage your account settings and preferences.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {error && (
+            <Alert variant="error">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          {successMessage && (
+            <Alert variant="success">
+              <AlertDescription>{successMessage}</AlertDescription>
+            </Alert>
+          )}
 
-        <Tabs defaultValue="appearance" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
-            <TabsTrigger value="appearance">Appearance</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="privacy">Privacy</TabsTrigger>
-            <TabsTrigger value="pathway">Pathway</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-          </TabsList>
-
-          {/* Appearance Settings */}
-          <TabsContent value="appearance" className="space-y-6">
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="text-xl font-semibold mb-6">Appearance Settings</h2>
-              
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Theme</Label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {["light", "dark", "system"].map((theme) => (
-                      <button
-                        key={theme}
-                        onClick={() => updateSetting("theme", theme)}
-                        className={`px-4 py-2 text-sm rounded-md capitalize transition-colors ${
-                          settings.theme === theme
-                            ? "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
-                            : "bg-zinc-100 text-zinc-900 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-100 dark:hover:bg-zinc-700"
-                        }`}
-                      >
-                        {theme}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>Reduced Motion</Label>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Minimize animations throughout the app
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.reducedMotion}
-                    onCheckedChange={(checked) => updateSetting("reducedMotion", checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>High Contrast</Label>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Increase contrast for better visibility
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.highContrast}
-                    onCheckedChange={(checked) => updateSetting("highContrast", checked)}
-                  />
-                </div>
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Profile</h3>
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={settings.profile.name}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      profile: { ...settings.profile, name: e.target.value },
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
+                  value={settings.profile.bio}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      profile: { ...settings.profile, bio: e.target.value },
+                    })
+                  }
+                />
               </div>
             </div>
-          </TabsContent>
+          </div>
 
-          {/* Notification Settings */}
-          <TabsContent value="notifications" className="space-y-6">
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <NotificationSettings />
-            </div>
-          </TabsContent>
-
-          {/* Privacy Settings */}
-          <TabsContent value="privacy" className="space-y-6">
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="text-xl font-semibold mb-6">Privacy Settings</h2>
-              
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>Profile Visibility</Label>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Control who can see your profile
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateSetting("profileVisibility", "public")}
-                      className={settings.profileVisibility === "public" ? "bg-amber-100" : ""}
-                    >
-                      Public
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateSetting("profileVisibility", "private")}
-                      className={settings.profileVisibility === "private" ? "bg-amber-100" : ""}
-                    >
-                      Private
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>Online Status</Label>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Show when you're active
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.showOnlineStatus}
-                    onCheckedChange={(checked) => updateSetting("showOnlineStatus", checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>Progress Visibility</Label>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Share your learning progress with others
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.showProgress}
-                    onCheckedChange={(checked) => updateSetting("showProgress", checked)}
-                  />
-                </div>
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Notifications</h3>
+            <div className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="email-notifications">Email notifications</Label>
+                <Switch
+                  id="email-notifications"
+                  checked={settings.notifications.email}
+                  onCheckedChange={(checked) =>
+                    setSettings({
+                      ...settings,
+                      notifications: { ...settings.notifications, email: checked },
+                    })
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="push-notifications">Push notifications</Label>
+                <Switch
+                  id="push-notifications"
+                  checked={settings.notifications.push}
+                  onCheckedChange={(checked) =>
+                    setSettings({
+                      ...settings,
+                      notifications: { ...settings.notifications, push: checked },
+                    })
+                  }
+                />
               </div>
             </div>
-          </TabsContent>
+          </div>
 
-          {/* Pathway Settings */}
-          <TabsContent value="pathway" className="space-y-6">
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="text-xl font-semibold mb-6">Pathway Preferences</h2>
-              
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>Learning Style</Label>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Customize content based on your learning style
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateSetting("learningStyle", "visual")}
-                      className={settings.learningStyle === "visual" ? "bg-amber-100" : ""}
-                    >
-                      Visual
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateSetting("learningStyle", "auditory")}
-                      className={settings.learningStyle === "auditory" ? "bg-amber-100" : ""}
-                    >
-                      Auditory
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => updateSetting("learningStyle", "kinesthetic")}
-                      className={settings.learningStyle === "kinesthetic" ? "bg-amber-100" : ""}
-                    >
-                      Hands-on
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>Goal Reminders</Label>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Get reminders about your pathway goals
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.goalReminders}
-                    onCheckedChange={(checked) => updateSetting("goalReminders", checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>Progress Tracking</Label>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Track and analyze your learning progress
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.progressTracking}
-                    onCheckedChange={(checked) => updateSetting("progressTracking", checked)}
-                  />
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Security Settings */}
-          <TabsContent value="security" className="space-y-6">
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-              <h2 className="text-xl font-semibold mb-6">Security Settings</h2>
-              
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>Two-Factor Authentication</Label>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Add an extra layer of security
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.twoFactorEnabled}
-                    onCheckedChange={(checked) => updateSetting("twoFactorEnabled", checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>Login Alerts</Label>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Get notified of new sign-ins
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.loginAlerts}
-                    onCheckedChange={(checked) => updateSetting("loginAlerts", checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <Label>Device History</Label>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Track devices that access your account
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.deviceHistory}
-                    onCheckedChange={(checked) => updateSetting("deviceHistory", checked)}
-                  />
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="w-full"
+          >
+            {isSaving ? (
+              <span className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </span>
+            ) : (
+              "Save changes"
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+    </Container>
   )
 } 

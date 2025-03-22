@@ -36,24 +36,18 @@ export function validateEmail(email: string): ValidationResult {
   const errors: string[] = []
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-  if (!emailRegex.test(email)) {
+  if (!email) {
+    errors.push("Email is required")
+  } else if (!emailRegex.test(email)) {
     errors.push("Please enter a valid email address")
   }
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
   }
 }
 
-export function formatValidationErrors(errors: string[]): string {
-  if (errors.length === 0) return ""
-  if (errors.length === 1) return errors[0]
-  
-  return errors.map((error, index) => {
-    if (index === errors.length - 1) {
-      return `and ${error.toLowerCase()}`
-    }
-    return error.toLowerCase()
-  }).join(", ")
+export function formatValidationErrors(errors: string[]): string[] {
+  return errors
 } 

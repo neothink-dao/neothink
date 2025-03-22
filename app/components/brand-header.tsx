@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { useRouter, usePathname } from "next/navigation"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/app/context/auth-context"
 import { Sparkles } from "lucide-react"
 
 export function BrandHeader() {

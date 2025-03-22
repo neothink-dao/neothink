@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/context/auth-context"
+import { useAuth } from "@/app/context/auth-context"
 import { PathwaySelection } from "@/app/components/pathway-selection"
 import { AuthForm } from "@/components/auth/AuthForm"
 

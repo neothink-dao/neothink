@@ -3,10 +3,13 @@ module.exports = {
     'tailwindcss': {},
     'autoprefixer': {},
     'postcss-preset-env': {
-      features: { 
+      stage: 3,
+      features: {
         'nesting-rules': true,
-        'is-pseudo-class': false
-      }
-    }
-  }
+      },
+      autoprefixer: {
+        flexbox: 'no-2009',
+      },
+    },
+  },
 }

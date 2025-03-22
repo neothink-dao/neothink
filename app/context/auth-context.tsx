@@ -9,10 +9,11 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   error: Error | null
-  signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string) => Promise<void>
+  signIn: (email: string, password: string) => Promise<{ error?: Error }>
+  signUp: (email: string, password: string) => Promise<{ error?: Error }>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
+  updatePassword: (password: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -57,10 +58,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
       })
-      if (error) throw error
+      if (error) {
+        setError(error)
+        return { error }
+      }
+      return {}
     } catch (err) {
-      setError(err as Error)
-      throw err
+      const error = err as Error
+      setError(error)
+      return { error }
     } finally {
       setLoading(false)
     }
@@ -77,11 +83,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       })
-      if (error) throw error
+      if (error) {
+        setError(error)
+        return { error }
+      }
       router.push('/auth/verify')
+      return {}
     } catch (err) {
-      setError(err as Error)
-      throw err
+      const error = err as Error
+      setError(error)
+      return { error }
     } finally {
       setLoading(false)
     }
@@ -117,6 +128,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function updatePassword(password: string) {
+    try {
+      setLoading(true)
+      setError(null)
+      const { error } = await supabase.auth.updateUser({
+        password,
+      })
+      if (error) throw error
+      router.push('/auth/sign-in')
+    } catch (err) {
+      setError(err as Error)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const value = {
     user,
     loading,
@@ -125,6 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     resetPassword,
+    updatePassword,
   }
 
   return (
