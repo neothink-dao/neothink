@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/app/context/auth-context"
@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff } from "lucide-react"
 import { validateEmail, validatePassword } from "@/lib/validation"
 
-export function SignUpForm() {
+function SignUpFormContent() {
   const { signUp } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -171,5 +171,13 @@ export function SignUpForm() {
         </Link>
       </p>
     </form>
+  )
+}
+
+export function SignUpForm() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignUpFormContent />
+    </Suspense>
   )
 } 

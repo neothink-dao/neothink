@@ -4,8 +4,9 @@ import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createBrowserClient } from "@supabase/ssr"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { Suspense } from 'react'
 
-export default function CallbackPage() {
+function CallbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
@@ -65,5 +66,13 @@ export default function CallbackPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function CallbackPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CallbackContent />
+    </Suspense>
   )
 }
