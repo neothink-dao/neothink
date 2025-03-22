@@ -1,0 +1,373 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // Used for direct connection to Supabase
+}
+
+// Core User Model
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  fullName          String
+  avatarUrl         String?
+  bio               String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+
+  // Supabase Auth ID
+  supabaseId        String?   @unique
+
+  // Consolidated settings and preferences
+  settings          UserSettings?
+  profile           Profile?
+  
+  // Relationships
+  posts             Post[]
+  comments          Comment[]
+  enrollments       Enrollment[]
+  achievements      Achievement[]
+  notifications     Notification[]
+  progress          Progress[]
+  conversations     ConversationParticipant[]
+  messages          Message[]
+  likes             Like[]
+  follows           Follow[]    @relation("Following")
+  followers         Follow[]    @relation("Followers")
+  memberships       Membership[]
+  subscriptions     Subscription[]
+  securitySettings  SecuritySettings?
+  createdCourses    Course[]    @relation("CourseCreator")
+  ownedSpaces       Space[]     @relation("SpaceOwner")
+
+  @@index([email])
+  @@index([deletedAt])
+  @@index([supabaseId])
+}
+
+// Consolidated Settings
+model UserSettings {
+  id                    String  @id @default(cuid())
+  userId               String  @unique
+  user                 User    @relation(fields: [userId], references: [id])
+  theme                String  @default("system")
+  emailNotifications   Boolean @default(true)
+  publicProfile        Boolean @default(true)
+  allowMessages        Boolean @default(true)
+  loginNotifications   Boolean @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Profile Information
+model Profile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+  bio           String?
+  location      String?
+  website       String?
+  socialLinks   Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Security Settings
+model SecuritySettings {
+  id                    String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id])
+  twoFactorEnabled     Boolean  @default(false)
+  lastPasswordChange   DateTime @default(now())
+  loginHistory         Json?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Unified Progress Tracking
+model Progress {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  entityType    String      // "course", "program", "pathway"
+  entityId      String
+  progress      Float       @default(0)
+  completedAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([userId, entityType, entityId])
+  @@index([entityType, entityId])
+  @@index([userId])
+}
+
+// Unified Notification System
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  type        String    // "security", "achievement", "social", etc.
+  title       String
+  description String?
+  read        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([userId, type])
+  @@index([userId, read])
+}
+
+// Achievement System
+model Achievement {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  title       String
+  description String
+  progress    Float     @default(0)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// Content Models
+model Post {
+  id          String    @id @default(cuid())
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  spaceId     String?
+  space       Space?    @relation(fields: [spaceId], references: [id])
+  title       String
+  content     String
+  likes       Like[]
+  comments    Comment[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([authorId])
+  @@index([spaceId])
+  @@index([deletedAt])
+  @@map("posts")
+}
+
+model Comment {
+  id          String    @id @default(cuid())
+  content     String
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  postId      String
+  post        Post      @relation(fields: [postId], references: [id])
+  parentId    String?
+  parent      Comment?  @relation("CommentToComment", fields: [parentId], references: [id])
+  replies     Comment[] @relation("CommentToComment")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([authorId])
+  @@index([postId])
+  @@index([parentId])
+  @@index([deletedAt])
+}
+
+// Learning Models
+model Course {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  creatorId   String
+  creator     User      @relation("CourseCreator", fields: [creatorId], references: [id])
+  spaceId     String
+  space       Space     @relation(fields: [spaceId], references: [id])
+  lessons     Lesson[]
+  enrollments Enrollment[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([creatorId])
+  @@index([spaceId])
+  @@index([deletedAt])
+}
+
+model Lesson {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  courseId    String
+  course      Course    @relation(fields: [courseId], references: [id])
+  orderIndex  Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([courseId])
+  @@index([deletedAt])
+}
+
+model Enrollment {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  courseId    String
+  course      Course    @relation(fields: [courseId], references: [id])
+  progress    Float     @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+// Social Models
+model Space {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  ownerId     String
+  owner       User      @relation("SpaceOwner", fields: [ownerId], references: [id])
+  posts       Post[]
+  courses     Course[]
+  memberships Membership[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  @@index([ownerId])
+  @@index([deletedAt])
+  @@map("spaces")
+}
+
+model Membership {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  spaceId     String
+  space       Space     @relation(fields: [spaceId], references: [id])
+  role        String    @default("member")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, spaceId])
+  @@index([userId])
+  @@index([spaceId])
+}
+
+model Follow {
+  id          String    @id @default(cuid())
+  followerId  String
+  follower    User      @relation("Following", fields: [followerId], references: [id])
+  followedId  String
+  followed    User      @relation("Followers", fields: [followedId], references: [id])
+  createdAt   DateTime  @default(now())
+
+  @@unique([followerId, followedId])
+  @@index([followerId])
+  @@index([followedId])
+}
+
+model Like {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  postId      String
+  post        Post      @relation(fields: [postId], references: [id])
+  createdAt   DateTime  @default(now())
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+}
+
+// Messaging Models
+model Conversation {
+  id          String    @id @default(cuid())
+  participants ConversationParticipant[]
+  messages    Message[]
+  lastMessageAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([lastMessageAt])
+}
+
+model ConversationParticipant {
+  id              String       @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id])
+  userId          String
+  user            User         @relation(fields: [userId], references: [id])
+  lastReadAt      DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+}
+
+model Message {
+  id              String       @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id])
+  senderId        String
+  sender          User         @relation(fields: [senderId], references: [id])
+  content         String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([deletedAt])
+}
+
+// Subscription Models
+model SubscriptionTier {
+  id          String    @id @default(cuid())
+  name        String
+  description String
+  price       Float
+  features    Json
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+  subscriptions Subscription[]
+
+  @@index([deletedAt])
+}
+
+model Subscription {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  tierId      String
+  tier        SubscriptionTier @relation(fields: [tierId], references: [id])
+  status      String    @default("active")
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([tierId])
+  @@index([status])
+} 

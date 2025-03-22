@@ -1,13 +1,14 @@
+import type { Metadata } from "next"
 import { Inter } from "next/font/google"
-import { Toaster } from "@/components/ui/toaster"
-import { Providers } from "@/components/providers"
+import { ThemeProvider } from "next-themes"
 import "./globals.css"
 
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  adjustFontFallback: true,
-})
+const inter = Inter({ subsets: ["latin"] })
+
+export const metadata: Metadata = {
+  title: "NeoThink",
+  description: "Transform your thinking, transform your life.",
+}
 
 export default function RootLayout({
   children,
@@ -15,12 +16,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.className}>
-      <body>
-        <Providers>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
           {children}
-          <Toaster />
-        </Providers>
+        </ThemeProvider>
       </body>
     </html>
   )
