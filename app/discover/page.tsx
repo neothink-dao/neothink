@@ -200,7 +200,7 @@ export default function DiscoverPage() {
             <Button onClick={() => {
               if (!user) {
                 localStorage.setItem('recommendedPathway', recommendedPathway);
-                router.push(`/auth/sign-in?redirectedFrom=/pathways/${recommendedPathway}`);
+                router.push(`/auth/sign-up?redirectedFrom=/pathways/${recommendedPathway}`);
               } else {
                 router.push(`/pathways/${recommendedPathway}`);
               }
