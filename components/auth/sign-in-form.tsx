@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/app/context/auth-context"
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,22 @@ export function SignInForm() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectPath = searchParams.get('redirectedFrom') || '/dashboard'
+
+  // Check for error query parameter on mount
+  useEffect(() => {
+    const errorParam = searchParams.get('error')
+    if (errorParam === 'session_expired') {
+      setError('Your session has expired. Please sign in again.')
+    }
+    
+    // Try to load saved email if available
+    const savedEmail = localStorage.getItem('userEmail')
+    if (savedEmail) {
+      setEmail(savedEmail)
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,6 +54,9 @@ export function SignInForm() {
       setError("Please enter your password")
       return
     }
+    
+    // Save email for convenience
+    localStorage.setItem('userEmail', email)
 
     try {
       setIsLoading(true)
@@ -48,7 +67,8 @@ export function SignInForm() {
         return
       }
 
-      router.push("/dashboard")
+      // Redirect to the specified path or dashboard
+      router.push(redirectPath)
     } catch (err) {
       console.error("Sign in error:", err)
       setError("An unexpected error occurred. Please try again.")
@@ -128,13 +148,6 @@ export function SignInForm() {
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Signing in..." : "Sign in"}
       </Button>
-
-      <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
-        Don't have an account?{" "}
-        <Link href="/auth/sign-up" className="text-primary hover:underline">
-          Sign up
-        </Link>
-      </p>
     </form>
   )
 } 

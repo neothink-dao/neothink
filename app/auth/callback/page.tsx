@@ -1,28 +1,55 @@
-import { redirect } from 'next/navigation'
-import { createServerSupabaseClient } from '@/lib/auth'
+"use client"
+
+import { useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createBrowserClient } from "@supabase/ssr"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
-export const dynamic = 'force-dynamic'
-
-export default async function CallbackPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
-  const resolvedSearchParams = await searchParams
-  const supabase = await createServerSupabaseClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  const next = typeof resolvedSearchParams.next === 'string' ? resolvedSearchParams.next : undefined
-
-  if (session?.user?.email_confirmed_at) {
-    redirect(next || '/dashboard')
-  } else if (session?.user) {
-    redirect(`/auth/verify${next ? `?next=${next}` : ''}`)
-  } else {
-    redirect(`/auth/login${next ? `?next=${next}` : ''}`)
-  }
-
-  // This will never be shown, but we need to return something
+export default function CallbackPage() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  useEffect(() => {
+    const handleCallback = async () => {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      
+      // Check if we have a code (OAuth) or access_token (magic link)
+      const code = searchParams.get('code')
+      const accessToken = searchParams.get('access_token')
+      
+      if (code || accessToken) {
+        await supabase.auth.exchangeCodeForSession(code || accessToken || '')
+      }
+      
+      // Get the session
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      // Get the redirect path from localStorage if it exists
+      const redirectPath = localStorage.getItem('redirectAfterAuth')
+      
+      if (session?.user?.email_confirmed_at) {
+        // User is confirmed, redirect to dashboard or saved path
+        if (redirectPath) {
+          localStorage.removeItem('redirectAfterAuth')
+          router.push(redirectPath)
+        } else {
+          router.push('/dashboard')
+        }
+      } else if (session?.user) {
+        // User is signed in but not confirmed
+        router.push('/auth/verify')
+      } else {
+        // No session, redirect to sign-in
+        router.push('/auth/sign-in')
+      }
+    }
+    
+    handleCallback()
+  }, [router, searchParams])
+  
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-900">
       <div className="container mx-auto px-4 py-16 sm:px-6 lg:px-8">

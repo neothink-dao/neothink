@@ -85,8 +85,17 @@ export async function middleware(request: NextRequest) {
   // Handle protected routes
   if (isProtectedRoute(request.nextUrl.pathname)) {
     if (!session) {
+      // Get the full pathname including search params
+      const fullPath = request.nextUrl.pathname + request.nextUrl.search
+      
       const redirectUrl = new URL('/auth/sign-in', request.url)
       redirectUrl.searchParams.set('redirectedFrom', request.nextUrl.pathname)
+      
+      // If we're trying to access a pathway, keep any query params
+      if (request.nextUrl.pathname.startsWith('/pathways/')) {
+        redirectUrl.searchParams.set('redirectedFrom', fullPath)
+      }
+      
       return NextResponse.redirect(redirectUrl)
     }
 

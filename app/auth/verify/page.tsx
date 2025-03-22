@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { createBrowserClient } from "@supabase/ssr"
 
 export default function VerifyPage() {
   const { user, error } = useAuth()
@@ -15,11 +16,24 @@ export default function VerifyPage() {
   const [isResending, setIsResending] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [verificationError, setVerificationError] = useState<string | null>(null)
+  const [verificationSuccess, setVerificationSuccess] = useState(false)
   const router = useRouter()
+  
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     if (user?.email_confirmed_at) {
-      router.push("/dashboard")
+      // Check if there's a saved redirect path
+      const redirectPath = localStorage.getItem('redirectAfterAuth')
+      if (redirectPath) {
+        localStorage.removeItem('redirectAfterAuth') // Clear it after use
+        router.push(redirectPath)
+      } else {
+        router.push("/dashboard")
+      }
     } else {
       setIsLoading(false)
     }
@@ -36,14 +50,28 @@ export default function VerifyPage() {
     try {
       setIsResending(true)
       setVerificationError(null)
+      setVerificationSuccess(false)
       
-      // Add resend verification logic here
-      // For example:
-      // await supabase.auth.resend({
-      //   type: 'signup',
-      //   email: user?.email
-      // })
+      // Get the email from localStorage
+      const email = localStorage.getItem('userEmail')
       
+      if (!email) {
+        setVerificationError("No email found. Please return to sign-in.")
+        return
+      }
+      
+      // Resend verification email
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        }
+      })
+      
+      if (error) throw error
+      
+      setVerificationSuccess(true)
       setResendCooldown(60) // Set cooldown to 60 seconds
     } catch (err: any) {
       setVerificationError(err.message)
@@ -77,6 +105,15 @@ export default function VerifyPage() {
               </AlertDescription>
             </Alert>
           )}
+          
+          {verificationSuccess && (
+            <Alert variant="success" className="mb-4">
+              <AlertDescription>
+                Verification email resent successfully. Please check your inbox.
+              </AlertDescription>
+            </Alert>
+          )}
+          
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
             <p>Didn't receive the email? Check your spam folder or click below to resend.</p>
           </div>

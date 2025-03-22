@@ -197,7 +197,14 @@ export default function DiscoverPage() {
           </div>
 
           <div className="grid gap-4">
-            <Button onClick={() => router.push(`/pathways/${recommendedPathway}`)}>
+            <Button onClick={() => {
+              if (!user) {
+                localStorage.setItem('recommendedPathway', recommendedPathway);
+                router.push(`/auth/sign-in?redirectedFrom=/pathways/${recommendedPathway}`);
+              } else {
+                router.push(`/pathways/${recommendedPathway}`);
+              }
+            }}>
               Start Your Journey
             </Button>
             <Button

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/app/context/auth-context"
 import { Button } from "@/components/ui/button"
@@ -22,6 +22,16 @@ export function SignUpForm() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectPath = searchParams.get('redirectedFrom')
+  
+  // Check for saved email on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('userEmail')
+    if (savedEmail) {
+      setEmail(savedEmail)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,6 +55,14 @@ export function SignUpForm() {
     if (password !== confirmPassword) {
       setError("Passwords do not match")
       return
+    }
+    
+    // Save email for convenience
+    localStorage.setItem('userEmail', email)
+    
+    // If we have a redirect path, save it for later
+    if (redirectPath) {
+      localStorage.setItem('redirectAfterAuth', redirectPath)
     }
 
     try {
